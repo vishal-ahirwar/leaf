@@ -103,7 +103,7 @@ void betterArgs(std::vector<std::string> &args, size_t argc, char **argv)
 int main(int argc, char **argv)
 {
   fmt::print("🍃 Leaf ");
-  fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::light_green), "v{} by {}\nA modern, fast, and intuitive project/package manager for C++\n\n", Project::VERSION_STRING, Project::COMPANY_NAME);
+  fmt::print(fmt::emphasis::bold |fmt::emphasis::underline| fmt::fg(fmt::color::light_green), "v{} by {}\nA modern, fast, and intuitive project/package manager for C++\n", Project::VERSION_STRING, Project::COMPANY_NAME);
 
   std::vector<std::string> args{};
   betterArgs(args, argc, argv);
