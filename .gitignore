@@ -4,3 +4,4 @@ packages/install/
 .vs
 .idea
 __pycache__
+.install

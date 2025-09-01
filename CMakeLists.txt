@@ -8,3 +8,6 @@ include(cmake/config.cmake)
 
 #@add_subproject Warning: Do not remove this line
 add_subdirectory(apps/leaf)
+add_subdirectory(libs/utils)
+add_subdirectory(libs/generator)
+add_subdirectory(libs/downloader)

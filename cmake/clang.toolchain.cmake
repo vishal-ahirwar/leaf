@@ -1,3 +1,4 @@
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/.install/build/${CMAKE_BUILD_TYPE}/generators/conan_toolchain.cmake)
 # Show a message for clarity
 message(STATUS "Forcing Clang compiler")
 

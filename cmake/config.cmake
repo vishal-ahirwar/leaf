@@ -4,6 +4,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(CRT_STATIC_LINK ON)
+option(BUILD_APPLICATION ON)
 message(STATUS "Static Link C Runtime ${CRT_STATIC_LINK}")
 if(CRT_STATIC_LINK)
   if (WIN32)
@@ -30,6 +31,6 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         -Wcast-align -Wnull-dereference
         -Wformat=2 -Wformat-security
         -D_FORTIFY_SOURCE=2
-        #-Werror
+        -Werror
     )
 endif()
