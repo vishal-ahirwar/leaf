@@ -63,15 +63,32 @@ cd hello-world
 
 This creates a project structure like:
 ```
-hello-world/
-├── conanfile.py       # Conan package definition
-├── CMakeLists.txt     # CMake build configuration
-├── hello-world/       # Root project
-│   └── src/
-│       └── main.cpp   # Your main source file
-├── .install/           # Conan dependencies (auto-generated)
-├── config/            # Project config files
-└── .build/             # Build output
+leaf/
+├── conanfile.py          # Root conanfile
+├── CMakeLists.txt        # Root CMakeLists to orchestrate the entire build.
+│
+├── apps/                 # Contains all final executable applications.
+│   └── leaf/             # An example application named 'leaf'.
+│       ├── src/
+│       │   └── main.cpp
+│       └── CMakeLists.txt  # Build script for the 'leaf' application.
+│
+├── libs/                 # Contains all shared/static libraries.
+│   ├── downloader/       # A library for downloading files.
+│   │   ├── src/
+│   │   └── CMakeLists.txt
+│   ├── generator/        # A library for generating content.
+│   │   ├── src/
+│   │   └── CMakeLists.txt
+│   └── utils/            # A general-purpose utility library.
+│       ├── src/
+│       └── CMakeLists.txt
+│
+├── .vscode/              # VS Code editor settings (optional).
+├── build/                # Build output directory (auto-generated).
+├── .install/             # Conan dependencies (auto-generated).
+├── cmake/                # Custom CMake modules (optional).
+└── .gitignore            # Git ignore rules.
 ```
 
 ### Add dependencies

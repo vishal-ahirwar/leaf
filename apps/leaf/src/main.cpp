@@ -103,12 +103,12 @@ void betterArgs(std::vector<std::string> &args, size_t argc, char **argv)
 int main(int argc, char **argv)
 {
   fmt::print("🍃 Leaf ");
-  fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::light_green), "v{} by {}\nProject and Package Management Tool for Modern C++.\n", Project::VERSION_STRING, Project::COMPANY_NAME);
+  fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::light_green), "v{} by {}\nA modern, fast, and intuitive project/package manager for C++\n", Project::VERSION_STRING, Project::COMPANY_NAME);
 
   std::vector<std::string> args{};
   betterArgs(args, argc, argv);
 
   std::string build_type{"Debug"};
-  install(std::vector<std::string>{"-s", std::format("build_type={}", build_type)});
+  //install(std::vector<std::string>{"-s", std::format("build_type={}", build_type)});
   return 0;
 }
