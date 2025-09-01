@@ -3,3 +3,4 @@ add_executable(leaf src/main.cpp) # Add your Source Files here
 find_package(fmt)
 find_package(reproc++)
 target_link_libraries(leaf fmt::fmt reproc::reproc utils generator downloader)
+target_include_directories(leaf PRIVATE utils)
