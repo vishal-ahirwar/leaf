@@ -41,12 +41,12 @@ class PublisherRole:
 
     def package_info(self):
         # This package only exposes information about the library.
-        self.cpp_info.libs = ["my_lib"]
+        self.cpp_info.libs = ["leaflibs"]
 
 # --- Final ConanFile ---
 class MyProjectConan(ConsumerRole, PublisherRole, ConanFile):
     # --- I. CORE METADATA ---
-    name = "my_lib" # The package name should be the library's name
+    name = "leaflibs" # The package name should be the library's name
     version = "0.1.0"
     # ... (license, author, url, etc. remain the same)
 
