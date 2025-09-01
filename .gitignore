@@ -1,0 +1,6 @@
+build/
+packages/install/
+.vscode/
+.vs
+.idea
+__pycache__
