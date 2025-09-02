@@ -1,118 +1,41 @@
 
+#include "commands.h"
+
+#include <map>
+#include <string>
+#include <functional>
+#include <ranges>
 #include <algorithm>
-#include <chrono>
-#include <iostream>
-#include <thread>
-#include <vector>
-#include <format>
-#include <leafconfig.h>
 #include <fmt/core.h>
-#include <reproc++/run.hpp>
 #include <fmt/color.h>
-#include <iterator>
-#include <utils.h>
-int install(const std::vector<std::string> &args)
-{
-  std::vector<std::string> conanInstallArgs{"conan", "install", ".", "-of", ".install", "-c", "tools.cmake.cmaketoolchain:user_presets=''"};
-  std::ranges::copy_if(args, std::back_inserter(conanInstallArgs), [&conanInstallArgs](const std::string &arg)
-                       { return std::ranges::find(conanInstallArgs, arg) == std::end(conanInstallArgs); });
+#include <leafconfig.h>
 
-  runExternalProcess(conanInstallArgs);
-  return 0;
-};
+std::unordered_map<std::string, std::function<int()>> commands{};
 
-int create(const std::vector<std::string> &args)
-{
-  std::ranges::copy(args, std::ostream_iterator<std::string>{std::cout, " "});
-  return 0;
-};
-
-int publish()
-{
-  runExternalProcess({"conan", "create", "."});
-  return 0;
-};
-
-int upload(const std::vector<std::string> &args)
-{
-  runExternalProcess(args);
-  return 0;
-};
-
-int runTests()
-{
-  runExternalProcess({"ctest -B build"});
-  return 0;
-};
-
-int format(const std::vector<std::string> &args)
-{
-  std::ranges::copy(args, std::ostream_iterator<std::string>{std::cout, " "});
-  return 0;
-};
-
-int clean()
-{
-  runExternalProcess({"cmake", "-B", "Build", "--fresh"});
-  return 0;
-};
-
-int debug(const std::vector<std::string> &args)
-{
-  std::ranges::copy(args, std::ostream_iterator<std::string>{std::cout, " "});
-  return 0;
-};
-
-int addPackage(const std::vector<std::string> &args)
-{
-  std::ranges::copy(args, std::ostream_iterator<std::string>{std::cout, " "});
-  return 0;
-};
-
-int removePackage(const std::vector<std::string> &args)
-{
-  std::ranges::copy(args, std::ostream_iterator<std::string>{std::cout, " "});
-  return 0;
-};
-
-int addApp(const std::vector<std::string> &args)
-{
-  std::ranges::copy(args, std::ostream_iterator<std::string>{std::cout, " "});
-  return 0;
-};
-
-int addLib(const std::vector<std::string> &args)
-{
-  std::ranges::copy(args, std::ostream_iterator<std::string>{std::cout, " "});
-  return 0;
-};
-
-int doctor(std::vector<std::string> &result)
-{
-  std::ranges::copy(result, std::ostream_iterator<std::string>{std::cout, " "});
-  return 0;
-};
-
-void betterArgs(std::vector<std::string> &args, size_t argc, char **argv)
-{
-  for (size_t i = 0; i < argc; i++)
-  {
-    args.push_back(argv[i]);
-  }
-}
 int main(int argc, char **argv)
 {
-  fmt::print("🍃 Leaf ");
-  fmt::print(fmt::emphasis::bold |fmt::emphasis::underline| fmt::fg(fmt::color::light_green), "v{} by {}\nA modern, fast, and intuitive project/package manager for C++\n", Project::VERSION_STRING, Project::COMPANY_NAME);
+  commands["create"] = create;
+  commands["clean"] = clean;
+  commands["format"] = format;
+  commands["install"] = install;
+  commands["help"] = help;
+  if (argc < 2)
+  {
+
+    fmt::print("🍃 Leaf ");
+    fmt::print(fmt::emphasis::bold | fmt::emphasis::faint | fmt::fg(fmt::color::light_green), "v{} by {}\nA modern, fast, and intuitive project/package manager for C++\n\n", Project::VERSION_STRING, Project::COMPANY_NAME);
+    fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::light_green), "Available Commands\n");
+    std::ranges::for_each(commands, [](const auto &command)
+                          { fmt::print("{} - \n", command.first); });
+  }
 
   std::vector<std::string> args{};
   betterArgs(args, argc, argv);
 
-  std::string build_type{"Debug"};
-  install(std::vector<std::string>{"-s", std::format("build_type={}", build_type)});
-  publish();
-  upload({"localholst"});
-  runTests();
-  clean();
+  std::ranges::for_each(args, [&](const auto &command)
+                        {if(auto function=commands.find(command);function!=commands.end()){
+    function->second();
+  } });
+
   return 0;
 }
