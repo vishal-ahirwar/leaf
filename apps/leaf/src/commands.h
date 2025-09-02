@@ -30,3 +30,11 @@ int doctor();
 void betterArgs(std::vector<std::string> &args, size_t argc, char **argv);
 
 int help();
+
+int build();
+
+int compile();
+
+int run();
+
+int init();
