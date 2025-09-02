@@ -16,7 +16,7 @@ class ConsumerRole:
         self.requires("fmt/11.2.0")
         self.requires("reproc/14.2.5")
         self.requires("cpr/1.12.0")
-        
+        self.requires("spinner/0.1.0")
 class PublisherRole:
     def layout(self):
         cmake_layout(self)

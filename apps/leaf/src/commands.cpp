@@ -71,7 +71,7 @@ int format()
 
 int clean()
 {
-  runExternalProcess({"cmake", "-B", "Build", "--fresh"});
+  runExternalProcess({"cmake", "-B", "build", "--fresh"});
   return 0;
 };
 
@@ -117,6 +117,7 @@ void betterArgs(std::vector<std::string> &args, size_t argc, char **argv)
 
 int build()
 {
+    runExternalProcess({"cmake","--build","build"});
     return 0;
 }
 

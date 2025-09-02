@@ -17,7 +17,6 @@ int help();
 
 int main(int argc, char **argv)
 {
-
   commands["create"] = {"Generates a new, fully structured Leaf project in a new directory.", create};
   commands["clean"] = {"Deletes all build files and temporary artifacts from the project directory.", clean};
   commands["format"] = {"Automatically formats all C++ source code files according to a consistent style.", format};
@@ -41,13 +40,13 @@ int main(int argc, char **argv)
   std::vector<std::string> args{};
   betterArgs(args, argc, argv);
   std::ranges::for_each(args,
-    [&](const auto &command)
-    {
-      if(auto function=commands.find(command);function!=commands.end())
-      {
-        function->second.second();
-      }
-    });
+                        [&](const auto &command)
+                        {
+                          if (auto function = commands.find(command); function != commands.end())
+                          {
+                            function->second.second();
+                          }
+                        });
 
   return 0;
 }
@@ -59,11 +58,11 @@ int help()
   std::map<std::string, Command> sorted_commands{commands.begin(), commands.end()};
   fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green), "Available Commands\n");
   std::ranges::for_each(sorted_commands,
-    [](const auto &command)
-    {
-      fmt::print("{} - ", command.first);
-      fmt::print(fmt::emphasis::faint|fmt::fg(fmt::color::floral_white),"{}\n",command.second.first);
-    });
+                        [](const auto &command)
+                        {
+                          fmt::print("{} - ", command.first);
+                          fmt::print(fmt::emphasis::faint | fmt::fg(fmt::color::floral_white), "{}\n", command.second.first);
+                        });
   fmt::println("");
   return 0;
 }

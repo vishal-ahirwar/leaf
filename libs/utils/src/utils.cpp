@@ -6,6 +6,7 @@
 #include <ranges>
 #include <algorithm>
 #include <reproc++/run.hpp>
+#include <spinner.h>
 
 int runExternalProcess(const std::vector<std::string> &args)
 {
@@ -13,6 +14,8 @@ int runExternalProcess(const std::vector<std::string> &args)
     std::ranges::copy(args, std::ostream_iterator<std::string>{std::cout, " "});
     std::cout << std::endl;
     reproc::process child;
-    auto ec = child.start(args);
+    reproc::options options;
+    options.redirect.parent=true;
+    auto ec = child.start(args,options);
     return ec ? ec.value() : 0;
 }
