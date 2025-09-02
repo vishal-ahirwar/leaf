@@ -10,7 +10,10 @@
 #include <fmt/color.h>
 #include <leafconfig.h>
 
-std::unordered_map<std::string, std::pair<std::string, std::function<int()>>> commands{};
+using Command = std::pair<std::string, std::function<int()>>;
+std::unordered_map<std::string, Command> commands{};
+
+int help();
 
 int main(int argc, char **argv)
 {
@@ -30,19 +33,37 @@ int main(int argc, char **argv)
 
   if (argc < 2)
   {
-
-    fmt::print("\n🍃 Leaf - v{} by {}\n", Project::VERSION_STRING, Project::COMPANY_NAME);
-    fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green), "A modern, fast, and intuitive project/package manager for C++\n\n");
-    fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green), "Available Commands\n");
-    std::ranges::for_each(commands, [](const auto &command){fmt::print("{} - ", command.first);
-    fmt::print(fmt::emphasis::faint|fmt::fg(fmt::color::floral_white),"{}\n",command.second.first);});
-    
+    fmt::print("🍃 Leaf - A modern C++ project manager.\n");
+    fmt::print("Run 'leaf help' for a list of commands.\n");
+    return 0;
   }
 
   std::vector<std::string> args{};
   betterArgs(args, argc, argv);
-  std::ranges::for_each(args, [&](const auto &command){if(auto function=commands.find(command);function!=commands.end()){function->second.second();
-  }});
+  std::ranges::for_each(args,
+    [&](const auto &command)
+    {
+      if(auto function=commands.find(command);function!=commands.end())
+      {
+        function->second.second();
+      }
+    });
 
+  return 0;
+}
+
+int help()
+{
+  fmt::print("\n🍃 Leaf - v{} by {}\n", Project::VERSION_STRING, Project::COMPANY_NAME);
+  fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green), "A modern, fast, and intuitive project/package manager for C++\n\n");
+  std::map<std::string, Command> sorted_commands{commands.begin(), commands.end()};
+  fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green), "Available Commands\n");
+  std::ranges::for_each(sorted_commands,
+    [](const auto &command)
+    {
+      fmt::print("{} - ", command.first);
+      fmt::print(fmt::emphasis::faint|fmt::fg(fmt::color::floral_white),"{}\n",command.second.first);
+    });
+  fmt::println("");
   return 0;
 }

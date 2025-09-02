@@ -114,10 +114,6 @@ void betterArgs(std::vector<std::string> &args, size_t argc, char **argv)
   }
 }
 
-int help()
-{
-  return 0;
-}
 
 int build()
 {
