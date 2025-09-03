@@ -2,7 +2,7 @@ from conan import ConanFile
 from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
     
 class LeafConan(ConanFile):
-    name = "%APPNAME%" # The package name should be the library's name
+    name = "leaf" # The package name should be the library's name
     version = "0.1.0"
     settings = "os", "compiler", "build_type", "arch"
     options = {
@@ -24,7 +24,7 @@ class LeafConan(ConanFile):
         self.requires("cpr/1.12.0")
         self.requires("spinner/0.1.0")
         if self.options.build_app:  # Only for the app
-            self.requires("gtest/11.2.0")
+            self.requires("gtest/1.17.0")
         else: # Only for the libs
             pass
     def layout(self):
