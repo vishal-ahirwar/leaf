@@ -1,0 +1,10 @@
+#ifndef __%APPNAME%__
+#define __%APPNAME%__
+#include <string_view>
+namespace Project {
+    constexpr std::string_view VERSION = "@%APPNAME%_VERSION_MAJOR@.@%APPNAME%_VERSION_MINOR@.@%APPNAME%_VERSION_PATCH@";
+    constexpr std::string_view COMPANY = "@COMPANY@";
+    constexpr std::string_view COPYRIGHT = "@COPYRIGHT@";
+    constexpr std::string_view NAME = "@PROJECT_NAME@";
+}
+#endif //%APPNAME%_H

@@ -1,7 +1,7 @@
 #include <iostream>
-#include "lib.h"
-
+#include "%LIBNAME%.h"
+#include"%APPNAME%config.h"
 int main() {
-    std::cout << get_greet("%APPNAME%") << std::endl;
+    std::cout << get_greet(std::format("{} v{}",Project::NAME,Project::VERSION)) << std::endl;
     return 0;
 }

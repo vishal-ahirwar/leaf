@@ -1,0 +1,54 @@
+# A recommended modern C++ style based on LLVM
+# For a full list of options, see: https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+Language: Cpp
+BasedOnStyle: LLVM
+
+#------------------------------------------------------------------------------
+# Indentation and Braces
+#------------------------------------------------------------------------------
+IndentWidth: 4
+UseTab: Never
+BreakBeforeBraces: Allman # Braces go on the next line (Allman style)
+AllowShortBlocksOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+
+#------------------------------------------------------------------------------
+# Spacing and Alignment
+#------------------------------------------------------------------------------
+PointerAlignment: Left   # Aligns pointer '*' to the left (e.g., int* p)
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+SpaceAfterCStyleCast: true
+SpaceBeforeParens: ControlStatements # void foo() vs. if (...)
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+#------------------------------------------------------------------------------
+# Line Breaking and Wrapping
+#------------------------------------------------------------------------------
+ColumnLimit: 100 # Default is 80, which is often too short for modern screens
+AllowAllParametersOfDeclarationOnNextLine: false
+BinPackParameters: false # Don't pack function parameters tightly
+BinPackArguments: false  # Don't pack function arguments tightly
+
+#------------------------------------------------------------------------------
+# Includes
+#------------------------------------------------------------------------------
+SortIncludes: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           '^<.*\.h>'
+    Priority:        1 # C system headers
+  - Regex:           '^<.*>'
+    Priority:        2 # C++ standard library
+  - Regex:           '.*'
+    Priority:        3 # Project headers
+
+#------------------------------------------------------------------------------
+# C++ Specific
+#------------------------------------------------------------------------------
+Cpp11BracedListStyle: true # For {}-style initialization
+FixNamespaceComments: true
+ReflowComments: true

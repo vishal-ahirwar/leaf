@@ -21,12 +21,12 @@ else()
   endif()
 endif()
 
-set(COMPANY "Vishal Ahirwar")
+set(COMPANY "Undefined")
 string(TIMESTAMP CURRENT_YEAR "%Y")
 set(COPYRIGHT "Copyright(c) ${CURRENT_YEAR} ${COMPANY}.")
 
 include_directories(${CMAKE_BINARY_DIR})
-configure_file(cmake/leafconfig.h.in leafconfig.h)
+configure_file(cmake/%APPNAME%config.h.in %APPNAME%config.h)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message(STATUS "Enabling secure coding features for Clang")
