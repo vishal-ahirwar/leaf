@@ -1,23 +1,32 @@
-# -----------------------------------------------------------------------------
-# MONOREPO-AWARE CONAN RECIPE
-#
-# This recipe can:
-#  - Build everything for local development (`conan install .`)
-#  - Build and package ONLY the library (`conan create . -o build_app=False`)
-#
-# Date: 2025-09-01
-# -----------------------------------------------------------------------------
 from conan import ConanFile
-from conan.tools.cmake import CMakeToolchain, CMakeDeps, CMake, cmake_layout
-
-# (ConsumerRole and PublisherRole mixins can remain the same as the previous template)
-class ConsumerRole:
+from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
+    
+class LeafConan(ConanFile):
+    name = "%APPNAME%" # The package name should be the library's name
+    version = "0.1.0"
+    settings = "os", "compiler", "build_type", "arch"
+    options = {
+        "shared": [True, False],
+        "fPIC": [True, False],
+        "build_app": [True, False]
+    }
+    default_options = {
+        "shared": False,
+        "fPIC": True,
+        "build_app": False
+    }
+    # Make sure to export ALL necessary source code.
+    exports_sources = "CMakeLists.txt", "libs/*","cmake/*"
+    
     def requirements(self):
         self.requires("fmt/11.2.0")
         self.requires("reproc/14.2.5")
         self.requires("cpr/1.12.0")
         self.requires("spinner/0.1.0")
-class PublisherRole:
+        if self.options.build_app:  # Only for the app
+            self.requires("gtest/11.2.0")
+        else: # Only for the libs
+            pass
     def layout(self):
         cmake_layout(self)
 
@@ -25,9 +34,8 @@ class PublisherRole:
         deps = CMakeDeps(self)
         deps.generate()
         tc = CMakeToolchain(self)
-        # --- THE KEY MODIFICATION ---
-        # Pass the value of our Conan option to a CMake variable.
-        tc.variables["BUILD_APPLICATION"] = False
+        #NOTE: This is if you want to publish apps with libs too
+        tc.variables["BUILD_APPLICATION"] = self.options.build_app
         tc.generate()
 
     def build(self):
@@ -42,33 +50,3 @@ class PublisherRole:
     def package_info(self):
         # This package only exposes information about the library.
         self.cpp_info.libs = ["leaflibs"]
-
-# --- Final ConanFile ---
-class MyProjectConan(ConsumerRole, PublisherRole, ConanFile):
-    # --- I. CORE METADATA ---
-    name = "leaflibs" # The package name should be the library's name
-    version = "0.1.0"
-    # ... (license, author, url, etc. remain the same)
-
-    # --- II. CONFIGURATION ---
-    settings = "os", "compiler", "build_type", "arch"
-    options = {
-        "shared": [True, False],
-        "fPIC": [True, False],
-    }
-    default_options = {
-        "shared": False,
-        "fPIC": True
-    }
-
-    # --- III. SOURCE MANAGEMENT ---
-    # Make sure to export ALL necessary source code.
-    exports_sources = "CMakeLists.txt", "app/*", "libs/*"
-
-    def config_options(self):
-        if self.settings.os == "Windows":
-            del self.options.fPIC
-
-    def configure(self):
-        if self.options.shared:
-            self.options.rm_safe("fPIC")

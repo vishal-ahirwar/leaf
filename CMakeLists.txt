@@ -7,7 +7,12 @@ include(cmake/config.cmake)
 #@add_find_package Warning: Do not remove this line
 
 #@add_subproject Warning: Do not remove this line
-add_subdirectory(apps/leaf)
+
+if(BUILD_APPLICATION)
+    add_subdirectory(apps/leaf)
+    add_subdirectory(tests)
+endif(BUILD_APPLICATION)
+
 add_subdirectory(libs/utils)
 add_subdirectory(libs/generator)
 add_subdirectory(libs/downloader)

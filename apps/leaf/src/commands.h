@@ -1,6 +1,6 @@
 #pragma once
-#include<vector>
-#include<string>
+#include <string>
+#include <vector>
 int install();
 
 int create();
@@ -27,8 +27,7 @@ int addLib();
 
 int doctor();
 
-void betterArgs(std::vector<std::string> &args, size_t argc, char **argv);
-
+void betterArgs(std::vector<std::string>& args, size_t argc, char** argv);
 
 int build();
 
