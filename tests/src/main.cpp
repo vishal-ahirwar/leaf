@@ -3,6 +3,7 @@
 #include <string>
 
 #include "utils.h"
+#include "easyproc.h"
 
 using namespace std::string_literals;
 

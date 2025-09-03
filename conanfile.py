@@ -22,9 +22,9 @@ class LeafConan(ConanFile):
         self.requires("fmt/11.2.0")
         self.requires("reproc/14.2.5")
         self.requires("cpr/1.12.0")
-        self.requires("spinner/0.1.0")
         if self.options.build_app:  # Only for the app
             self.requires("gtest/1.17.0")
+            self.requires("spinner/0.1.0")
         else: # Only for the libs
             pass
     def layout(self):
@@ -48,5 +48,18 @@ class LeafConan(ConanFile):
         cmake.install()
 
     def package_info(self):
-        # This package only exposes information about the library.
-        self.cpp_info.libs = ["leaflibs"]
+        # Define the "utils" library component
+        self.cpp_info.components["utils"].libs = ["utils"]
+        self.cpp_info.components["utils"].requires=["fmt::fmt"]
+        # Define the "utils" library component
+        self.cpp_info.components["easyproc"].libs = ["easyproc"]
+        self.cpp_info.components["easyproc"].requires=["reproc::reproc"]
+        # # CRITICAL: Declare ALL public dependencies for the 'utils' component.
+
+        # # Define the "downloader" library component
+        self.cpp_info.components["downloader"].libs = ["downloader"]
+        self.cpp_info.components["downloader"].requires = ["utils","cpr::cpr"] # Example if downloader depends on utils
+
+        # # Define the "generator" library component
+        # self.cpp_info.components["generator"].libs = ["generator"]
+        # self.cpp_info.components["generator"].requires = ["utils"] # Example if generator depends on utils

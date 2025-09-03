@@ -8,7 +8,7 @@ option(CRT_STATIC_LINK ON)
 option(BUILD_APPLICATION ON)
 
 message(STATUS "Static Link C Runtime ${CRT_STATIC_LINK}")
-
+message(STATUS "Build Application ${BUILD_APPLICATION}")
 if(CRT_STATIC_LINK)
   if (WIN32)
       set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

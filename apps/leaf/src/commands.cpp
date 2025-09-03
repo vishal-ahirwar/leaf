@@ -3,7 +3,7 @@
 #include <fmt/color.h>
 #include <fmt/core.h>
 #include <utils.h>
-
+#include <easyproc.h>
 #include <algorithm>
 #include <filesystem>
 #include <fstream>

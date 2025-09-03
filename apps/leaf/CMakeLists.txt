@@ -3,4 +3,4 @@ add_executable(leaf src/main.cpp src/commands.cpp) # Add your Source Files here
 find_package(fmt)
 find_package(reproc++)
 find_package(spinner)
-target_link_libraries(leaf fmt::fmt reproc::reproc utils generator downloader spinner::spinner)
+target_link_libraries(leaf fmt::fmt utils generator downloader spinner::spinner easyproc)
