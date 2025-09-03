@@ -1,5 +1,5 @@
 #include "%LIBNAME%.h"
-#include<format>
+#include<fmt/core.h>
 std::string get_greet(const std::string& name) {
-    return std::format("Hello, {}!", name);
+    return fmt::format("Hello, {}!", name);
 }

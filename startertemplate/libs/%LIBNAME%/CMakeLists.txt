@@ -1,9 +1,9 @@
-add_library(%LIBNAME% src/lib.cpp)
+find_package(fmt)
+add_library(%LIBNAME%lib src/%LIBNAME%.cpp)
+target_link_libraries(%LIBNAME%lib fmt::fmt)
+target_include_directories(%LIBNAME%lib PUBLIC include)
 
-target_include_directories(%LIBNAME% PUBLIC include)
-target_link_libraries(%LIBNAME% PUBLIC fmt::fmt)
-
-install(TARGETS %LIBNAME%
+install(TARGETS %LIBNAME%lib
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin

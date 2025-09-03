@@ -12,15 +12,18 @@ class %APPNAME%Conan(ConanFile):
     }
     default_options = {
         "shared": False,
-        "fPIC": True
+        "fPIC": True,
         "build_app": False
     }
-
+    # Make sure to export ALL necessary source code.
+    exports_sources = "CMakeLists.txt", "app/*", "libs/*","cmake/*"
+    
     def requirements(self):
-        #self.requires("fmt/11.2.0")
+        self.requires("fmt/11.2.0")
         if self.options.build_app:  # Only for the app
             pass
-
+        else: # Only for the libs
+            pass
     def layout(self):
         cmake_layout(self)
 
