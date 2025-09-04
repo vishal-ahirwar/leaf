@@ -8,7 +8,7 @@
 #include <string>
 
 
-bool replaceString(std::string& str, const std::string& from, std::string& to)
+bool replaceString(std::string& str, const std::string& from, const  std::string& to)
 {
     if (str.empty()) {
         return false;
