@@ -1,7 +1,7 @@
+#include <%APPNAME%config.h>
 #include <iostream>
-#include "%LIBNAME%.h"
-#include"%APPNAME%config.h"
+#include <%LIBNAME%.h>
 int main() {
-    std::cout << get_greet(std::string(Project::NAME)) << std::endl;
+    hello(std::string(Project::COMPANY));
     return 0;
 }

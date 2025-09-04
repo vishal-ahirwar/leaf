@@ -19,7 +19,7 @@ class %APPNAME%Conan(ConanFile):
     exports_sources = "CMakeLists.txt", "app/*", "libs/*","cmake/*"
     
     def requirements(self):
-        self.requires("fmt/11.2.0")
+        #self.requires("Libname/version")
         if self.options.build_app:  # Only for the app
             pass
         else: # Only for the libs
@@ -46,4 +46,7 @@ class %APPNAME%Conan(ConanFile):
 
     def package_info(self):
         # This package only exposes information about the library.
-        self.cpp_info.libs = ["%APPNAME%libs"]
+        self.cpp_info.libs = ["%LIBNAME%"] #Only if you have single lib if you component then
+        # # Define the "yourlib" library component
+        # self.cpp_info.components["yourlib"].libs = ["yourlib"]
+        # self.cpp_info.components["yourlib"].requires = ["fmt::fmt"] # Example if generator depends on fmt
