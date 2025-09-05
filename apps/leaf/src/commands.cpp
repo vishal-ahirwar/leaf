@@ -22,9 +22,11 @@ int install()
                                               "-of",
                                               ".install",
                                               "-s",
-                                              "build_type=Debug",
+                                              "build_type=Release",
+                                              "-s",
+                                              "&:build_type=Debug",
                                               "-c",
-                                              "tools.cmake.cmaketoolchain:user_presets=''",
+                                              "tools.cmake.cmaketoolchain:user_presets=",
                                               "-o",
                                               "&:build_app=True"};
     runExternalProcess(conanInstallArgs);
@@ -138,7 +140,7 @@ int format()
 
 int clean()
 {
-    runExternalProcess({"cmake", "-B", "build", "--fresh"});
+    runExternalProcess({"cmake", "--build", "--preset","debug", "--fresh"});
     return 0;
 };
 
@@ -209,7 +211,7 @@ int run()
 #else
     std::string extention = "";
 #endif
-    std::system(fmt::format("./.build/Debug/apps/{}/{}{}","test","test", extention).c_str());
+    std::system(fmt::format("./.build/Debug/apps/{}/{}{}", "test", "test", extention).c_str());
     return 0;
 }
 
