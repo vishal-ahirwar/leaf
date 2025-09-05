@@ -15,7 +15,7 @@ int format();
 
 int clean();
 
-int debug();
+int release();
 
 int addPackage();
 

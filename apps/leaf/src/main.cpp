@@ -34,14 +34,15 @@ int main(int argc, char** argv)
     commands["run"] = {"Compiles and executes the main application target of your project.", run};
     commands["publish"] = {
         "Formally uploads the final, release-ready version of a package to a remote.", publish};
-    commands["upload"] = {"Uploads a packaged library to a specified remote Conan repository.",
-                          upload};
-    commands["doctor"] = {"Checks your system to ensure all required tools (Clang, CMake, Conan) "
-                          "are correctly installed.",
-                          doctor};
-    commands["init"]   = {"Initializes a new Leaf project structure within an existing directory.",
-                          init};
-
+    commands["upload"]  = {"Uploads a packaged library to a specified remote Conan repository.",
+                           upload};
+    commands["doctor"]  = {"Checks your system to ensure all required tools (Clang, CMake, Conan) ",
+                           doctor};
+    commands["release"] = {
+        "Fetches and installs in release mode all the dependencies listed in the conanfile.py.",
+        release};
+    commands["init"] = {"Initializes a new Leaf project structure within an existing directory.",
+                        init};
     if (argc < 2)
     {
         fmt::print("🍃 Leaf - A modern C++ project manager.\n");

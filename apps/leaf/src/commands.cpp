@@ -123,12 +123,13 @@ int publish()
 
 int upload()
 {
+    // TODO
     return 0;
 };
 
 int runTests()
 {
-    runExternalProcess({"ctest -B build"});
+    // TODO runExternalProcess({"ctest -B build"});
     return 0;
 };
 
@@ -140,13 +141,28 @@ int format()
 
 int clean()
 {
-    runExternalProcess({"cmake", "--build", "--preset","debug", "--fresh"});
+    // TODO runExternalProcess({"cmake", "--preset","debug" ,"--build","--fresh"});
     return 0;
 };
 
-int debug()
+int release()
 {
-
+    std::vector<std::string> conanInstallArgs{"conan",
+                                              "install",
+                                              ".",
+                                              "-of",
+                                              ".install",
+                                              "-s",
+                                              "build_type=Release",
+                                              "-s",
+                                              "&:build_type=Release",
+                                              "-c",
+                                              "tools.cmake.cmaketoolchain:user_presets=",
+                                              "-o",
+                                              "&:build_app=True"};
+    runExternalProcess(conanInstallArgs);
+    runExternalProcess({"cmake", "--preset", "release"});
+    runExternalProcess({"cmake", "--build", "--preset", "release"});
     return 0;
 };
 
