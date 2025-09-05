@@ -21,8 +21,12 @@ int install()
                                               ".",
                                               "-of",
                                               ".install",
+                                              "-s",
+                                              "build_type=Debug",
                                               "-c",
-                                              "tools.cmake.cmaketoolchain:user_presets=''"};
+                                              "tools.cmake.cmaketoolchain:user_presets=''",
+                                              "-o",
+                                              "&:build_app=True"};
     runExternalProcess(conanInstallArgs);
     return 0;
 };
@@ -38,7 +42,7 @@ int create()
                "What would you like to name your project? ");
 
     std::getline(std::cin, project_name);
-    if (project_name.find(" ") != std::string::npos||project_name.empty())
+    if (project_name.find(" ") != std::string::npos || project_name.empty())
     {
         fmt::println("Project name can't be empty and can't have whitespaces in their name!");
         return 0;
@@ -51,7 +55,7 @@ int create()
         fmt::println("You can't have two targets with same name!");
         return 0;
     };
-    lib_name=lib_name.empty()?project_name+"lib":lib_name;
+    lib_name = lib_name.empty() ? project_name + "lib" : lib_name;
 
     std::map<std::string, std::string> replacements{
         {"%APPNAME%", project_name}, {"%LIBNAME%", lib_name}, {"startertemplate", project_name}};
@@ -179,7 +183,17 @@ void betterArgs(std::vector<std::string>& args, size_t argc, char** argv)
 
 int build()
 {
-    runExternalProcess({"cmake", "--build", "build"});
+    namespace fs = std::filesystem;
+    if (!fs::exists(".install"))
+    {
+        install();
+    };
+    if (!fs::exists(".build"))
+    {
+        runExternalProcess({"cmake", "--preset", "debug"});
+    }
+
+    runExternalProcess({"cmake", "--build", "--preset", "debug"});
     return 0;
 }
 
@@ -190,6 +204,12 @@ int compile()
 
 int run()
 {
+#ifdef _WIN322
+    std::string extention = ".exe";
+#else
+    std::string extention = "";
+#endif
+    std::system(fmt::format("./.build/Debug/apps/{}/{}{}","test","test", extention).c_str());
     return 0;
 }
 
