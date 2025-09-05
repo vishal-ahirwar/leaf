@@ -231,7 +231,7 @@ int LeafCommands::release()
                                               "-o",
                                               "&:build_app=True"};
     runExternalProcess(conanInstallArgs);
-    runExternalProcess({"cmake", "--preset", "release"});
+    runExternalProcess({"cmake", "--preset", "release","--fresh"});
     runExternalProcess({"cmake", "--build", "--preset", "release"});
     return 0;
 };

@@ -55,7 +55,8 @@ class LeafConan(ConanFile):
         self.cpp_info.components["easyproc"].libs = ["easyproc"]
         self.cpp_info.components["easyproc"].requires=["reproc::reproc"]
         # # CRITICAL: Declare ALL public dependencies for the 'utils' component.
-
+        self.cpp_info.components["commands"].libs = ["commands"]
+        self.cpp_info.components["commands"].requires=["fmt::fmt"]
         # # Define the "downloader" library component
         self.cpp_info.components["downloader"].libs = ["downloader"]
         self.cpp_info.components["downloader"].requires = ["utils","cpr::cpr"] # Example if downloader depends on utils
