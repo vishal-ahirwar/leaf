@@ -1,6 +1,7 @@
-#include "commands.h"
+#include "leafcommands.h"
 
 #include <easyproc.h>
+#include <fmt/base.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
 #include <utils.h>
@@ -14,13 +15,80 @@
 #include <string>
 #include <vector>
 
-int install()
+#include "leafconfig.h"
+
+LeafCommands::LeafCommands(std::vector<std::string>&& args)
+    : _commands(new Commands(std::move(args),
+                             []()
+                             {
+                                 fmt::print("🍃 Leaf - A modern C++ project manager.\n");
+                                 fmt::print("Run 'leaf help' for a list of commands.\n");
+                             }))
+{
+    _commands->registerCommands(
+        "create",
+        "Generates a new, fully structured Leaf project in a new directory.",
+        [this]() { return this->create(); });
+
+    _commands->registerCommands("help",
+                                "Displays a list of all available commands and their descriptions.",
+                                [this]() { return this->help(); });
+    _commands->registerCommands(
+        "version", "Display leaf current version", [this]() { return this->version(); });
+    _commands->registerCommands(
+        "clean",
+        "Deletes all build files and temporary artifacts from the project directory.",
+        [this]() { return this->clean(); });
+    _commands->registerCommands(
+        "format",
+        "Automatically formats all C++ source code files according to a consistent style.",
+        [this]() { return this->format(); });
+    _commands->registerCommands(
+        "install",
+        "Fetches and installs all the dependencies listed in the conanfile.py.",
+        [this]() { return this->install(); });
+    _commands->registerCommands("build",
+                                "A comprehensive command to compile the entire project and its "
+                                "dependencies and run the app.",
+                                [this]() { return this->build(); });
+    _commands->registerCommands("compile",
+                                "Builds all targets in the project without running them.",
+                                [this]() { return this->compile(); });
+    _commands->registerCommands(
+        "run",
+        "Compiles and executes the main application target of your project.",
+        [this]() { return this->run(); });
+    _commands->registerCommands(
+        "publish",
+        "Formally uploads the final, release-ready version of a package to a remote.",
+        [this]() { return this->publish(); });
+    _commands->registerCommands(
+        "upload",
+        "Uploads a packaged library to a specified remote Conan repository.",
+        [this]() { return this->upload(); });
+    _commands->registerCommands(
+        "doctor",
+        "Checks your system to ensure all required tools (Clang, CMake,Conan) ",
+        [this]() { return this->doctor(); });
+    _commands->registerCommands(
+        "release",
+        "Fetches and installs in release mode all the dependencies listed in the conanfile.py.",
+        [this]() { return this->release(); });
+    _commands->registerCommands(
+        "init",
+        "Initializes a new Leaf project structure within an existing directory.",
+        [this]() { return this->init(); });
+};
+
+int LeafCommands::install()
 {
     std::vector<std::string> conanInstallArgs{"conan",
                                               "install",
                                               ".",
                                               "-of",
-                                              ".install","-b","missing",
+                                              ".install",
+                                              "-b",
+                                              "missing",
                                               "-s",
                                               "build_type=Release",
                                               "-s",
@@ -33,7 +101,7 @@ int install()
     return 0;
 };
 
-int create()
+int LeafCommands::create()
 {
     namespace fs = std::filesystem;
 
@@ -115,43 +183,45 @@ int create()
     return 0;
 };
 
-int publish()
+int LeafCommands::publish()
 {
     runExternalProcess({"conan", "create", "."});
     return 0;
 };
 
-int upload()
+int LeafCommands::upload()
 {
     // TODO
     return 0;
 };
 
-int runTests()
+int LeafCommands::runTests()
 {
-    // TODO runExternalProcess({"ctest -B build"});
+    runExternalProcess({"ctest -B .build/Debug/tests"});
     return 0;
 };
 
-int format()
+int LeafCommands::format()
 {
 
     return 0;
 };
 
-int clean()
+int LeafCommands::clean()
 {
-    // TODO runExternalProcess({"cmake", "--preset","debug" ,"--build","--fresh"});
+    runExternalProcess({"cmake", "--preset", "debug", "--fresh"});
     return 0;
 };
 
-int release()
+int LeafCommands::release()
 {
     std::vector<std::string> conanInstallArgs{"conan",
                                               "install",
                                               ".",
                                               "-of",
-                                              ".install","-b","missing",
+                                              ".install",
+                                              "-b",
+                                              "missing",
                                               "-s",
                                               "build_type=Release",
                                               "-s",
@@ -166,40 +236,32 @@ int release()
     return 0;
 };
 
-int addPackage()
+int LeafCommands::addPackage()
 {
     return 0;
 };
 
-int removePackage()
+int LeafCommands::removePackage()
 {
     return 0;
 };
 
-int addApp()
+int LeafCommands::addApp()
 {
     return 0;
 };
 
-int addLib()
+int LeafCommands::addLib()
 {
     return 0;
 };
 
-int doctor()
+int LeafCommands::doctor()
 {
     return 0;
 };
 
-void betterArgs(std::vector<std::string>& args, size_t argc, char** argv)
-{
-    for (size_t i = 0; i < argc; i++)
-    {
-        args.push_back(argv[i]);
-    }
-}
-
-int build()
+int LeafCommands::build()
 {
     namespace fs = std::filesystem;
     if (!fs::exists(".install"))
@@ -215,12 +277,12 @@ int build()
     return 0;
 }
 
-int compile()
+int LeafCommands::compile()
 {
     return 0;
 }
 
-int run()
+int LeafCommands::run()
 {
 #ifdef _WIN322
     std::string extention = ".exe";
@@ -231,7 +293,39 @@ int run()
     return 0;
 }
 
-int init()
+int LeafCommands::init()
 {
     return 0;
+}
+
+int LeafCommands::help()
+{
+    fmt::print("\n🍃 Leaf - v{} by {}\n", Project::VERSION_STRING, Project::COMPANY_NAME);
+    fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green),
+               "A modern, fast, and intuitive project/package manager for C++\n\n");
+    std::map<std::string, std::pair<std::string, std::function<int()>>> sorted_commands{
+        _commands->getCommands().begin(), _commands->getCommands().end()};
+    fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green),
+               "Available Commands\n");
+    std::ranges::for_each(sorted_commands,
+                          [](const auto& command)
+                          {
+                              fmt::print("{} - ", command.first);
+                              fmt::print(fmt::emphasis::faint | fmt::fg(fmt::color::floral_white),
+                                         "{}\n",
+                                         command.second.first);
+                          });
+    fmt::println("");
+    return 0;
+}
+
+int LeafCommands::version() const
+{
+    fmt::println("{} v{}", Project::PROJECT_NAME, Project::VERSION_STRING);
+    return 0;
+}
+
+int LeafCommands::exec()
+{
+    return _commands->exec();
 }
