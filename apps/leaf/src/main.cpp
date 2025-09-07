@@ -10,8 +10,6 @@
 
 int main(int argc, char** argv)
 {
-    auto args = betterArgs(argc, argv);
-    args.push_back("create");
-    LeafCommands commands(std::move(args));
+    LeafCommands commands(betterArgs(argc,argv));
     return commands.exec();
 }
