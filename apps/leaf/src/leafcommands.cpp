@@ -1,5 +1,6 @@
 #include "leafcommands.h"
 
+#include <downloder.h>
 #include <easyproc.h>
 #include <fmt/base.h>
 #include <fmt/color.h>
@@ -136,6 +137,7 @@ int LeafCommands::create()
         auto starter_template = fs::path(std::getenv("HOME")) / ".leaf" / "startertemplate";
         if (!fs::exists(starter_template))
         {
+            downloadGithubDirectory("vishal-ahirwar", "leaf", "startertemplate",starter_template);
             starter_template = fs::path("startertemplate");
         }
         if (!fs::exists(starter_template))
@@ -231,7 +233,7 @@ int LeafCommands::release()
                                               "-o",
                                               "&:build_app=True"};
     runExternalProcess(conanInstallArgs);
-    runExternalProcess({"cmake", "--preset", "release","--fresh"});
+    runExternalProcess({"cmake", "--preset", "release", "--fresh"});
     runExternalProcess({"cmake", "--build", "--preset", "release"});
     return 0;
 };

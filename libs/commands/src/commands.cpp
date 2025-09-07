@@ -37,3 +37,7 @@ const std::unordered_map<std::string, std::pair<std::string, std::function<int()
 {
     return _commands;
 }
+
+const  std::vector<std::string>& Commands::getArgs()const{
+    return _args;
+}

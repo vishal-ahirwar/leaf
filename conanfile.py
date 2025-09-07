@@ -22,6 +22,7 @@ class LeafConan(ConanFile):
         self.requires("fmt/11.2.0")
         self.requires("reproc/14.2.5")
         self.requires("cpr/1.12.0")
+        self.requires("nlohmann_json/3.12.0")
         if self.options.build_app:  # Only for the app
             self.requires("gtest/1.17.0")
             self.requires("spinner/0.1.0")
@@ -59,7 +60,7 @@ class LeafConan(ConanFile):
         self.cpp_info.components["commands"].requires=["fmt::fmt"]
         # # Define the "downloader" library component
         self.cpp_info.components["downloader"].libs = ["downloader"]
-        self.cpp_info.components["downloader"].requires = ["utils","cpr::cpr"] # Example if downloader depends on utils
+        self.cpp_info.components["downloader"].requires = ["utils","cpr::cpr","nlohmann_json::nlohmann_json"] # Example if downloader depends on utils
 
         # # Define the "generator" library component
         # self.cpp_info.components["generator"].libs = ["generator"]

@@ -1,6 +1,7 @@
 find_package(fmt)
 find_package(reproc++)
 find_package(cpr)
+find_package(nlohmann_json)
 add_subdirectory(downloader)
 add_subdirectory(easyproc)
 add_subdirectory(generator)

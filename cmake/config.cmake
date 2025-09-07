@@ -38,6 +38,6 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         -Wcast-align -Wnull-dereference
         -Wformat=2 -Wformat-security
         -D_FORTIFY_SOURCE=2
-        -Werror
+        # -Werror
     )
 endif()
