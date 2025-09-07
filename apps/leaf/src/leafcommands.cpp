@@ -133,7 +133,6 @@ int LeafCommands::create()
 
     if (std::getenv("HOME"))
     {
-        fmt::println("{}", std::getenv("HOME"));
         auto starter_template = fs::path(std::getenv("HOME")) / ".leaf" / "startertemplate";
         if (!fs::exists(starter_template))
         {

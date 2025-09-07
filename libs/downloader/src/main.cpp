@@ -11,6 +11,28 @@
 
 #include "downloder.h"
 
+std::string urlEncode(const std::string& value)
+{
+    std::ostringstream escaped;
+    escaped.fill('0');
+    escaped << std::hex;
+
+    for (char c : value)
+    {
+        // Keep alphanumeric and other unreserved characters
+        if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~')
+        {
+            escaped << c;
+            continue;
+        }
+        // Any other characters are escaped
+        escaped << std::uppercase;
+        escaped << '%' << std::setw(2) << int((unsigned char) c);
+        escaped << std::nouppercase;
+    }
+
+    return escaped.str();
+}
 // progress bar
 void download(const std::string& url, const std::string& outputFilePath)
 {
@@ -65,8 +87,9 @@ void downloadGithubDirectory(const std::string& owner,
                              const std::string& localPath)
 {
     // 1. Construct the GitHub API URL
+    std::string encodedRepoPath = urlEncode(directory);
     std::string apiUrl =
-        fmt::format("https://api.github.com/repos/{}/{}/contents/{}", owner, repo, directory);
+        fmt::format("https://api.github.com/repos/{}/{}/contents/{}", owner, repo, encodedRepoPath);
     fmt::print("-> Fetching contents of directory: {}\n", directory.empty() ? "/" : directory);
 
     // 2. Make the API request
