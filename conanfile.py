@@ -26,6 +26,7 @@ class LeafConan(ConanFile):
         if self.options.build_app:  # Only for the app
             self.requires("gtest/1.17.0")
             self.requires("spinner/0.1.0")
+            self.requires("platformfolders/4.3.0")
         else: # Only for the libs
             pass
     def layout(self):

@@ -6,7 +6,7 @@
 #include <fmt/color.h>
 #include <fmt/core.h>
 #include <utils.h>
-
+#include<sago/platform_folders.h>
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -90,14 +90,19 @@ int LeafCommands::install()
                                               ".install",
                                               "-b",
                                               "missing",
-                                              "-s",
-                                              "build_type=Release",
-                                              "-s",
-                                              "&:build_type=Debug",
                                               "-c",
                                               "tools.cmake.cmaketoolchain:user_presets=",
                                               "-o",
                                               "&:build_app=True"};
+    conanInstallArgs.push_back("-s");
+    if (std::ranges::find(_commands->getArgs(), "-r") != _commands->getArgs().end())
+    {
+        conanInstallArgs.push_back("build_type=Release");
+    }
+    else
+    {
+        conanInstallArgs.push_back("build_type=Debug");
+    }
     runExternalProcess(conanInstallArgs);
     return 0;
 };
@@ -130,14 +135,14 @@ int LeafCommands::create()
 
     std::map<std::string, std::string> replacements{
         {"%APPNAME%", project_name}, {"%LIBNAME%", lib_name}, {"startertemplate", project_name}};
-
-    if (std::getenv("HOME"))
+    auto home = sago::getConfigHome();
+    if (fs::exists(home))
     {
-        auto starter_template = fs::path(std::getenv("HOME")) / ".leaf" / "startertemplate";
+        auto starter_template = fs::path(home) / ".leaf" / "startertemplate";
         if (!fs::exists(starter_template))
         {
-            downloadGithubDirectory("vishal-ahirwar", "leaf", "startertemplate",starter_template);
-            starter_template = fs::path("startertemplate");
+            fs::create_directories(starter_template);
+            downloadGithubDirectory("vishal-ahirwar", "leaf", "startertemplate",starter_template.string());
         }
         if (!fs::exists(starter_template))
         {
@@ -148,22 +153,22 @@ int LeafCommands::create()
         for (const auto& f : fs::recursive_directory_iterator(starter_template))
         {
             std::string filename = f.path().string();
+            auto is_directory = f.is_directory();
+            auto outFilename  =(fs::current_path()/f.path().filename()).string();
             std::ranges::for_each(
                 replacements,
-                [&filename](const auto& replacement)
-                { replaceString(filename, replacement.first, replacement.second); });
-            auto is_directory = f.is_directory();
-
+                [&outFilename](const auto& replacement)
+                { replaceString(outFilename, replacement.first, replacement.second); });
             if (is_directory)
             {
-                if (fs::create_directories(filename))
+                if (fs::create_directories(outFilename))
                 {
-                    fmt::println("Directory created {}", filename);
+                    fmt::println("Directory created {}", outFilename);
                 };
             }
             else
             {
-                fmt::println("File created {}", filename);
+                fmt::println("File created {}", outFilename);
                 std::ifstream in(f.path());
                 std::string   content;
                 in >> std::noskipws;
@@ -174,11 +179,16 @@ int LeafCommands::create()
                     replacements,
                     [&content](const auto& replacement)
                     { replaceString(content, replacement.first, replacement.second); });
-                std::ofstream out(filename);
+                std::ofstream out(outFilename);
                 out.write(content.c_str(), content.size());
                 out.close();
             }
         }
+    }
+    else
+    {
+        fmt::print("{} does not exist!\n",home);
+        return -1;
     }
 
     return 0;
@@ -225,8 +235,6 @@ int LeafCommands::release()
                                               "missing",
                                               "-s",
                                               "build_type=Release",
-                                              "-s",
-                                              "&:build_type=Release",
                                               "-c",
                                               "tools.cmake.cmaketoolchain:user_presets=",
                                               "-o",
@@ -285,12 +293,31 @@ int LeafCommands::compile()
 
 int LeafCommands::run()
 {
+    namespace fs = std::filesystem;
 #ifdef _WIN322
     std::string extention = ".exe";
 #else
     std::string extention = "";
 #endif
-    std::system(fmt::format("./.build/Debug/apps/{}/{}{}", "test", "test", extention).c_str());
+    if (std::ranges::find(_commands->getArgs(), "-r") != _commands->getArgs().end())
+    {
+        auto appName = _commands->getArgs().back();
+        if (appName == "-r" || _commands->getArgs().size()<=2)
+        {
+            appName = fs::current_path().filename().string();
+        }
+        std::system(fmt::format("./.build/Release/apps/{}/{}{}",appName, appName, extention).c_str());
+    }
+    else
+    {
+        auto appName = _commands->getArgs().back();
+        if (_commands->getArgs().size() <= 2)
+        {
+            appName = fs::current_path().filename().string();
+        }
+        std::system(
+            fmt::format("./.build/Debug/apps/{}/{}{}", appName, appName, extention).c_str());
+    }
     return 0;
 }
 

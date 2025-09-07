@@ -1,4 +1,5 @@
 find_package(fmt)
 find_package(reproc++)
 find_package(spinner)
+find_package(platform_folders)
 add_subdirectory(leaf)

@@ -8,7 +8,6 @@
   "configurePresets": [
     {
       "name": "debug",
-      "displayName": "Debug",
       "description": "Configure for Debug builds. Requires running 'conan install . -of .install -s build_type=Debug' for Debug first.",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/.build/Debug",
@@ -19,7 +18,6 @@
     },
     {
       "name": "release",
-      "displayName": "Release",
       "description": "Configure for Release builds. Requires running 'conan install . -of .install -s build_type=Debug' for Release first.",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/.build/Release",

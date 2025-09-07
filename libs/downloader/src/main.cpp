@@ -33,7 +33,7 @@ std::string urlEncode(const std::string& value)
 
     return escaped.str();
 }
-// progress bar
+
 void download(const std::string& url, const std::string& outputFilePath)
 {
 #ifdef _WIN32
@@ -41,7 +41,7 @@ void download(const std::string& url, const std::string& outputFilePath)
 #else
     std::string name = outputFilePath.substr(outputFilePath.find_last_of("/") + 1);
 #endif
-    // Perform the HTTP GET request
+
     cpr::Response response =
         cpr::Get(cpr::Url{url},
                  cpr::SslOptions{},
@@ -61,13 +61,18 @@ void download(const std::string& url, const std::string& outputFilePath)
                          return true;
                      }));
 
-    // Check if the download was successful
     if (response.status_code == 200)
     {
-        // Open a file in binary mode to write the ZIP content
-        std::ofstream outputFile(outputFilePath, std::ios::binary);
 
-        // Write the response content to the file
+        std::ofstream outputFile(outputFilePath, std::ios::binary);
+        if (!outputFile.is_open())
+        {
+            fmt::println(
+                "\n{}",
+                fmt::format("failed to save  \033[32m{}\033[0m", outputFilePath));  
+            outputFile.close();
+            return;
+        }
         outputFile.write(response.text.c_str(), response.text.size());
         outputFile.close();
         fmt::println("\n{}",
@@ -76,7 +81,7 @@ void download(const std::string& url, const std::string& outputFilePath)
     else
     {
         fmt::println("\n{}",
-                     fmt::format("Failed to download file. Status code:\033[32m{}\033[0m",
+                     fmt::format("{}. Status code:\033[32m{}\033[0m",response.status_line,
                                  response.status_code));
     }
 }
@@ -93,7 +98,8 @@ void downloadGithubDirectory(const std::string& owner,
     fmt::print("-> Fetching contents of directory: {}\n", directory.empty() ? "/" : directory);
 
     // 2. Make the API request
-    cpr::Response r = cpr::Get(cpr::Url{apiUrl}, cpr::Header{{"User-Agent", "C++ Downloader"}});
+    cpr::Response r = cpr::Get(
+        cpr::Url{apiUrl}, cpr::SslOptions{}, cpr::Header{{"User-Agent", "C++ Downloader"}});
 
     if (r.status_code != 200)
     {
