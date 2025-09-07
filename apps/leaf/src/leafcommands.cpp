@@ -5,8 +5,9 @@
 #include <fmt/base.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
+#include <sago/platform_folders.h>
 #include <utils.h>
-#include<sago/platform_folders.h>
+
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -142,52 +143,60 @@ int LeafCommands::create()
         if (!fs::exists(starter_template))
         {
             fs::create_directories(starter_template);
-            downloadGithubDirectory("vishal-ahirwar", "leaf", "startertemplate",starter_template.string());
+            downloadGithubDirectory(
+                "vishal-ahirwar", "leaf", "startertemplate", starter_template.string());
         }
         if (!fs::exists(starter_template))
         {
             fmt::println("Could not find or download start template code!");
             return 1;
         };
-
-        for (const auto& f : fs::recursive_directory_iterator(starter_template))
+        if (!fs::exists(fs::current_path() / project_name))
         {
-            std::string filename = f.path().string();
-            auto is_directory = f.is_directory();
-            auto outFilename  =(fs::current_path()/f.path().filename()).string();
-            std::ranges::for_each(
-                replacements,
-                [&outFilename](const auto& replacement)
-                { replaceString(outFilename, replacement.first, replacement.second); });
-            if (is_directory)
+            fs::create_directories(fs::current_path() / project_name);
+        }
+
+        for (const auto& templateContent : fs::recursive_directory_iterator(starter_template))
+        {
+            auto oldPath = templateContent.path().string();
+            fs::path newPath{};
+            auto index = oldPath.find("startertemplate");
+            if (index != std::string::npos)
             {
-                if (fs::create_directories(outFilename))
+              newPath = (fs::current_path() / oldPath.substr(index));
+            }
+            std::string name  = newPath.filename().string();
+            std::string newPathString = newPath.string();
+            std::ranges::for_each(replacements,
+                                  [&newPathString](const auto& rep)
+                                  { replaceString(newPathString, rep.first, rep.second); });
+            if (templateContent.is_directory())
+            {
+                if (fs::create_directories(newPathString))
                 {
-                    fmt::println("Directory created {}", outFilename);
-                };
+                    fmt::print("Directory created :{}\n", newPathString);
+                }
             }
             else
             {
-                fmt::println("File created {}", outFilename);
-                std::ifstream in(f.path());
-                std::string   content;
+                fmt::print("File created:{}\n", newPathString);
+
+                std::ifstream in(oldPath);
+                std::string   content{};
                 in >> std::noskipws;
-                std::ranges::copy(std::istream_iterator<char>(in),
-                                  std::istream_iterator<char>(),
-                                  std::back_inserter(content));
-                std::ranges::for_each(
-                    replacements,
-                    [&content](const auto& replacement)
-                    { replaceString(content, replacement.first, replacement.second); });
-                std::ofstream out(outFilename);
-                out.write(content.c_str(), content.size());
+
+                std::ranges::copy(std::istream_iterator<char>(in), std::istream_iterator<char>{},std::back_inserter(content));
+                std::ranges::for_each(replacements,
+                                      [&content](const auto& rep) { replaceString(content,rep.first,rep.second); });
+                std::ofstream out(newPathString);
+                out << content;
                 out.close();
             }
         }
     }
     else
     {
-        fmt::print("{} does not exist!\n",home);
+        fmt::print("{} does not exist!\n", home);
         return -1;
     }
 
@@ -302,11 +311,12 @@ int LeafCommands::run()
     if (std::ranges::find(_commands->getArgs(), "-r") != _commands->getArgs().end())
     {
         auto appName = _commands->getArgs().back();
-        if (appName == "-r" || _commands->getArgs().size()<=2)
+        if (appName == "-r" || _commands->getArgs().size() <= 2)
         {
             appName = fs::current_path().filename().string();
         }
-        std::system(fmt::format("./.build/Release/apps/{}/{}{}",appName, appName, extention).c_str());
+        std::system(
+            fmt::format("./.build/Release/apps/{}/{}{}", appName, appName, extention).c_str());
     }
     else
     {
