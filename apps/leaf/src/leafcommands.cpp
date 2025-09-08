@@ -158,14 +158,14 @@ int LeafCommands::create()
 
         for (const auto& templateContent : fs::recursive_directory_iterator(starter_template))
         {
-            auto oldPath = templateContent.path().string();
+            auto     oldPath = templateContent.path().string();
             fs::path newPath{};
-            auto index = oldPath.find("startertemplate");
+            auto     index = oldPath.find("startertemplate");
             if (index != std::string::npos)
             {
-              newPath = (fs::current_path() / oldPath.substr(index));
+                newPath = (fs::current_path() / oldPath.substr(index));
             }
-            std::string name  = newPath.filename().string();
+            std::string name          = newPath.filename().string();
             std::string newPathString = newPath.string();
             std::ranges::for_each(replacements,
                                   [&newPathString](const auto& rep)
@@ -185,9 +185,12 @@ int LeafCommands::create()
                 std::string   content{};
                 in >> std::noskipws;
 
-                std::ranges::copy(std::istream_iterator<char>(in), std::istream_iterator<char>{},std::back_inserter(content));
+                std::ranges::copy(std::istream_iterator<char>(in),
+                                  std::istream_iterator<char>{},
+                                  std::back_inserter(content));
                 std::ranges::for_each(replacements,
-                                      [&content](const auto& rep) { replaceString(content,rep.first,rep.second); });
+                                      [&content](const auto& rep)
+                                      { replaceString(content, rep.first, rep.second); });
                 std::ofstream out(newPathString);
                 out << content;
                 out.close();
@@ -205,7 +208,7 @@ int LeafCommands::create()
 
 int LeafCommands::publish()
 {
-    runExternalProcess({"conan", "create", "."});
+    runExternalProcess({"conan", "create", ".", "-b", "missing"});
     return 0;
 };
 
@@ -229,7 +232,19 @@ int LeafCommands::format()
 
 int LeafCommands::clean()
 {
-    runExternalProcess({"cmake", "--preset", "debug", "--fresh"});
+    namespace fs = std::filesystem;
+    if (std::ranges::find(_commands->getArgs(), "-r") != _commands->getArgs().end())
+    {
+        if (!fs::exists(".install/Release"))
+            install();
+        runExternalProcess({"cmake", "--preset", "release", "--fresh"});
+    }
+    else
+    {
+        if (!fs::exists(".install/Debug"))
+            install();
+        runExternalProcess({"cmake", "--preset", "debug", "--fresh"});
+    }
     return 0;
 };
 
@@ -297,6 +312,14 @@ int LeafCommands::build()
 
 int LeafCommands::compile()
 {
+    if (std::ranges::find(_commands->getArgs(), "-r") != _commands->getArgs().end())
+    {
+        runExternalProcess({"cmake", "--build", "--preset", "release"});
+    }
+    else
+    {
+        runExternalProcess({"cmake", "--build", "--preset", "debug"});
+    }
     return 0;
 }
 
