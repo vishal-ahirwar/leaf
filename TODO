@@ -6,5 +6,7 @@
 
 - auto conan profile host generation
 
+- auto artifact setup for private conan packages
+
 - ....
 
