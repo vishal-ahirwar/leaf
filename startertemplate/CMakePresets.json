@@ -34,15 +34,14 @@
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
       },
-      "environment": {
-        "CC": "clang",
-        "CXX": "clang++"
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
       }
     },
     {
-      "name": "debug",
-      "description": "Configure for Debug builds. Requires running 'conan install . -of .install -s build_type=Debug' for Debug first.",
-      "inherits": [ "base-windows", "base-unix" ],
+      "name": "base-debug",
+      "hidden": true,
       "binaryDir": "${sourceDir}/.build/Debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
@@ -50,14 +49,21 @@
       }
     },
     {
-      "name": "release",
-      "description": "Configure for Release builds. Requires running 'conan install . -of .install -s build_type=Release' for Release first.",
-      "inherits": [ "base-windows", "base-unix" ],
+      "name": "base-release",
+      "hidden": true,
       "binaryDir": "${sourceDir}/.build/Release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/.install/build/Release/generators/conan_toolchain.cmake"
       }
+    },
+    {
+      "name": "debug",
+      "inherits": [ "base-windows", "base-unix", "base-debug" ]
+    },
+    {
+      "name": "release",
+      "inherits": [ "base-windows", "base-unix", "base-release" ]
     }
   ],
   "buildPresets": [
