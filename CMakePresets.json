@@ -7,63 +7,20 @@
   },
   "configurePresets": [
     {
-      "name": "base",
-      "hidden": true,
-      "generator": "Ninja"
-    },
-    {
-      "name": "base-windows",
-      "hidden": true,
-      "inherits": "base",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      },
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang-cl",
-        "CMAKE_CXX_COMPILER": "clang-cl"
-      }
-    },
-    {
-      "name": "base-unix",
-      "hidden": true,
-      "inherits": "base",
-      "condition": {
-        "type": "notEquals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      },
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++"
-      }
-    },
-    {
-      "name": "base-debug",
-      "hidden": true,
+      "name": "debug",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/.build/Debug",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/.install/build/Debug/generators/conan_toolchain.cmake"
+        "CMAKE_BUILD_TYPE": "Debug"
       }
-    },
-    {
-      "name": "base-release",
-      "hidden": true,
-      "binaryDir": "${sourceDir}/.build/Release",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/.install/build/Release/generators/conan_toolchain.cmake"
-      }
-    },
-    {
-      "name": "debug",
-      "inherits": [ "base-windows", "base-unix", "base-debug" ]
     },
     {
       "name": "release",
-      "inherits": [ "base-windows", "base-unix", "base-release" ]
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/.build/Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     }
   ],
   "buildPresets": [
