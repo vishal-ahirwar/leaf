@@ -237,13 +237,13 @@ int LeafCommands::clean()
     {
         if (!fs::exists(".install/Release"))
             install();
-        runExternalProcess({"cmake", "--preset", "release", "--fresh"});
+        runExternalProcess({"cmake", "-S",".","-B","build-release","-DCMAKE_BUILD_TYPE=Release","-G Ninja","--fresh"});
     }
     else
     {
         if (!fs::exists(".install/Debug"))
             install();
-        runExternalProcess({"cmake", "--preset", "debug", "--fresh"});
+        runExternalProcess({"cmake", "-S",".","-B","build-debug","-DCMAKE_BUILD_TYPE=Debug","-G Ninja","--fresh"});
     }
     return 0;
 };
@@ -264,8 +264,8 @@ int LeafCommands::release()
                                               "-o",
                                               "&:build_app=True"};
     runExternalProcess(conanInstallArgs);
-    runExternalProcess({"cmake", "--preset", "release", "--fresh"});
-    runExternalProcess({"cmake", "--build", "--preset", "release"});
+    runExternalProcess({"cmake", "-S",".","-B","build-release","-DCMAKE_BUILD_TYPE=Release","-G Ninja","--fresh"});
+    runExternalProcess({"cmake","--build","build-release"});
     return 0;
 };
 
@@ -301,12 +301,12 @@ int LeafCommands::build()
     {
         install();
     };
-    if (!fs::exists(".build"))
+    if (!fs::exists("build-debug"))
     {
-        runExternalProcess({"cmake", "--preset", "debug"});
+        runExternalProcess({"cmake", "-S",".","-B","build-debug","-DCMAKE_BUILD_TYPE=Debug","-G Ninja","--fresh"});
     }
 
-    runExternalProcess({"cmake", "--build", "--preset", "debug"});
+    runExternalProcess({"cmake", "--build", "build-debug"});
     return 0;
 }
 
@@ -314,11 +314,11 @@ int LeafCommands::compile()
 {
     if (std::ranges::find(_commands->getArgs(), "-r") != _commands->getArgs().end())
     {
-        runExternalProcess({"cmake", "--build", "--preset", "release"});
+        runExternalProcess({"cmake", "--build", "build-release"});
     }
     else
     {
-        runExternalProcess({"cmake", "--build", "--preset", "debug"});
+        runExternalProcess({"cmake", "--build", "build-debug"});
     }
     return 0;
 }
@@ -339,7 +339,7 @@ int LeafCommands::run()
             appName = fs::current_path().filename().string();
         }
         std::system(
-            fmt::format("./.build/Release/apps/{}/{}{}", appName, appName, extention).c_str());
+            fmt::format("./build-release/apps/{}/{}{}", appName, appName, extention).c_str());
     }
     else
     {
@@ -349,7 +349,7 @@ int LeafCommands::run()
             appName = fs::current_path().filename().string();
         }
         std::system(
-            fmt::format("./.build/Debug/apps/{}/{}{}", appName, appName, extention).c_str());
+            fmt::format("./build-debug/apps/{}/{}{}", appName, appName, extention).c_str());
     }
     return 0;
 }
