@@ -12,6 +12,7 @@ int main(int argc, char** argv)
 {
 
     auto args = betterArgs(argc, argv);
+    // args.push_back("help");
     LeafCommands commands(std::move(args));
 
     return commands.exec();

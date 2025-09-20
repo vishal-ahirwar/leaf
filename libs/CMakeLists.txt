@@ -5,7 +5,7 @@ find_package(nlohmann_json)
 
 add_library(downloader downloader/src/main.cpp) # Add your Source Files here
 #@add_target_link_libraries Warning: Do not remove this line
-target_link_libraries(downloader fmt::fmt cpr::cpr nlohmann_json::nlohmann_json)
+target_link_libraries(downloader PRIVATE fmt::fmt cpr::cpr nlohmann_json::nlohmann_json)
 target_include_directories(downloader PUBLIC include)
 install(TARGETS downloader)
 install(DIRECTORY include/ DESTINATION include)
@@ -19,7 +19,7 @@ install(DIRECTORY include/ DESTINATION include)
 
 add_library(generator generator/src/main.cpp) # Add your Source Files here
 #@add_target_link_libraries Warning: Do not remove this line
-target_link_libraries(generator fmt::fmt)
+target_link_libraries(generator PRIVATE fmt::fmt)
 target_include_directories(generator PUBLIC include)
 install(TARGETS generator)
 install(DIRECTORY include/ DESTINATION include)
@@ -34,6 +34,6 @@ install(DIRECTORY include/ DESTINATION include)
 
 add_library(commands commands/src/commands.cpp)
 target_include_directories(commands PUBLIC include)
-target_link_libraries(commands fmt::fmt)
+target_link_libraries(commands PRIVATE fmt::fmt)
 install(TARGETS commands)
 install(DIRECTORY include/ DESTINATION include)

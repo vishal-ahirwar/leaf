@@ -80,6 +80,15 @@ LeafCommands::LeafCommands(std::vector<std::string>&& args)
         "init",
         "Initializes a new Leaf project structure within an existing directory.",
         [this]() { return this->init(); });
+    _commands->registerCommands("addapp",
+                                "Add Executable type subproject to your project",
+                                [this]() { return this->addApp(); });
+
+    _commands->registerCommands(
+        "addlib", "Add sharable library to your project", [this]() { return this->addLib(); });
+
+    _commands->registerCommands(
+        "addpkg", "Add external library to your project", [this]() { return this->addPackage(); });
 };
 
 int LeafCommands::install()
@@ -285,26 +294,42 @@ int LeafCommands::release()
 
 int LeafCommands::addPackage()
 {
+    //TODO
     return 0;
 };
 
 int LeafCommands::removePackage()
 {
+    //TODO
     return 0;
 };
 
 int LeafCommands::addApp()
 {
+    //TODO
     return 0;
 };
 
 int LeafCommands::addLib()
 {
+    //TODO
     return 0;
 };
 
 int LeafCommands::doctor()
 {
+    std::vector<std::string> tools{"clang", "cmake", "ninja", "conan"};
+
+    bool allToolsInstalled{false};
+
+    std::ranges::for_each(tools,
+                          [&allToolsInstalled](const auto& tool)
+                          { allToolsInstalled = runExternalProcess({tool, "--version"}) == 0; });
+
+    fmt::print(allToolsInstalled ? fmt::emphasis::bold | fmt::fg(fmt::color::medium_sea_green)
+                                 : fmt::emphasis::underline | fmt::fg(fmt::color::crimson),
+               "All tools installed : {}",
+               allToolsInstalled ? "True" : "False");
     return 0;
 };
 
@@ -361,7 +386,7 @@ int LeafCommands::run()
         {
             appName = fs::current_path().filename().string();
         }
-       runExternalProcess({fmt::format("./.build/debug/apps/{}{}", appName, extention).c_str()});
+        runExternalProcess({fmt::format("./.build/debug/apps/{}{}", appName, extention).c_str()});
     }
     return 0;
 }
