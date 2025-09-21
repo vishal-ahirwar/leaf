@@ -1,5 +1,7 @@
 #pragma once
 #include <commands.h>
+#include <fmt/color.h>
+#include <fmt/core.h>
 
 #include <functional>
 #include <map>
@@ -7,11 +9,11 @@
 #include <ranges>
 #include <string>
 #include <vector>
-#include <fmt/core.h>
-#include <fmt/color.h>
+
 class LeafCommands
 {
     std::unique_ptr<Commands> _commands{};
+    std::vector<std::string>  _args{};
 
   public:
     LeafCommands() = delete;
@@ -19,7 +21,6 @@ class LeafCommands
     int exec();
 
   private:
-  
     int install();
 
     int create();

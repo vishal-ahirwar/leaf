@@ -25,7 +25,8 @@ LeafCommands::LeafCommands(std::vector<std::string>&& args)
                              {
                                  fmt::print("🍃 Leaf - A modern C++ project manager.\n");
                                  fmt::print("Run 'leaf help' for a list of commands.\n");
-                             }))
+                             })),
+      _args(args)
 {
     _commands->registerCommands(
         "create",
@@ -294,25 +295,25 @@ int LeafCommands::release()
 
 int LeafCommands::addPackage()
 {
-    //TODO
+    // TODO
     return 0;
 };
 
 int LeafCommands::removePackage()
 {
-    //TODO
+    // TODO
     return 0;
 };
 
 int LeafCommands::addApp()
 {
-    //TODO
+    // TODO
     return 0;
 };
 
 int LeafCommands::addLib()
 {
-    //TODO
+    // TODO
     return 0;
 };
 
