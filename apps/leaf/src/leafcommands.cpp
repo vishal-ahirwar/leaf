@@ -15,6 +15,7 @@
 #include <iterator>
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "leafconfig.h"
@@ -296,6 +297,41 @@ int LeafCommands::release()
 int LeafCommands::addPackage()
 {
     // TODO
+    if (_args.size() <= 3 &&
+        std::ranges::any_of(_args, [](const auto& str) { return str == "-r"; }))
+    {
+        fmt::println("error : Alteast one package/version needs to provided!");
+        return -1;
+    }
+    std::vector<std::pair<std::string, std::string>> packagesToInstall{};
+    bool                                             installInReleaseMode{false};
+    std::for_each(
+        _args.begin() + 2,
+        _args.end(),
+        [&installInReleaseMode, &packagesToInstall](const std::string& arg)
+        {
+            if (arg == "-r")
+            {
+                installInReleaseMode = true;
+            }
+            else
+            {
+                auto index = arg.find("/");
+                if (index == std::string::npos)
+                {
+                    fmt::println("error : Invalid package format for {}, try this -> package/version",arg);
+                    return;
+                }
+
+                auto packageName    = arg.substr(0, index);
+                auto packageVersion = arg.substr(++index);
+
+                packagesToInstall.push_back(
+                    std::pair<std::string, std::string>{packageName, packageVersion});
+            }
+        });
+    
+        std::ranges::for_each(packagesToInstall,[](const auto&package){fmt::println("Package name : {}, Package version : {}",package.first,package.second);});
     return 0;
 };
 
