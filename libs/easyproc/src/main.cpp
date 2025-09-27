@@ -2,6 +2,7 @@
 #include <fmt/core.h>
 
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <ranges>
@@ -56,7 +57,7 @@ int ProcessHandler::runExternalProcess(const std::vector<std::string>& args,
         // By default, reproc only redirects stdout to a pipe and not stderr so we
         // pass `reproc::sink::null` as the sink for stderr here. We could also pass
         // `sink` but it wouldn't receive any data from stderr.
-        ec = reproc::drain(process, sink, reproc::sink::null);
+        ec = reproc::drain(process, sink,sink);
         if (ec)
         {
             return fail(ec);
@@ -81,6 +82,13 @@ int ProcessHandler::runExternalProcess(const std::vector<std::string>& args,
     {
         return fail(ec);
     }
+    if (captureStdOutStdErr)
+    {
+        std::ofstream out("build.log");
+        out << log;
+        out.close();
+    }
+
     return ec ? ec.value() : 0;
 }
 

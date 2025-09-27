@@ -223,7 +223,14 @@ int LeafCommands::create()
 
 int LeafCommands::publish()
 {
-    ProcessHandler::runExternalProcess({"conan", "create", ".", "-b", "missing"});
+    Spinner spin("Creating Package");
+    spin.start();
+    if (0 != ProcessHandler::runExternalProcess({"conan", "create", ".", "-b", "missing"}))
+    {
+        spin.stop();
+        std::cout << "Error : " << ProcessHandler::getLog() << "\n";
+    };
+
     return 0;
 };
 
