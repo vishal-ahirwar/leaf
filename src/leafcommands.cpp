@@ -254,27 +254,13 @@ int LeafCommands::clean()
     {
         if (!fs::exists(".install/Release"))
             install();
-        ProcessHandler::runExternalProcess({"cmake",
-                                            "-S",
-                                            ".",
-                                            "-B",
-                                            "build-release",
-                                            "-DCMAKE_BUILD_TYPE=Release",
-                                            "-G Ninja",
-                                            "--fresh"});
+        ProcessHandler::runExternalProcess({"cmake", "--preset", "release", "--fresh"});
     }
     else
     {
         if (!fs::exists(".install/Debug"))
             install();
-        ProcessHandler::runExternalProcess({"cmake",
-                                            "-S",
-                                            ".",
-                                            "-B",
-                                            "build-debug",
-                                            "-DCMAKE_BUILD_TYPE=Debug",
-                                            "-G Ninja",
-                                            "--fresh"});
+        ProcessHandler::runExternalProcess({"cmake", "--preset", "debug", "--fresh"});
     }
     spin.stop();
     return 0;
@@ -298,7 +284,7 @@ int LeafCommands::release()
                                               "-o",
                                               "&:build_app=True"};
     ProcessHandler::runExternalProcess(conanInstallArgs);
-    spin.setDisplayMessage("Generating cmake files");
+    spin.setDisplayMessage("Generating CMake files");
     ProcessHandler::runExternalProcess({"cmake", "--preset", "release", "--fresh"});
     spin.setDisplayMessage("Compiling Project");
     ProcessHandler::runExternalProcess({"cmake", "--build", ".build/release"});
@@ -383,7 +369,7 @@ int LeafCommands::doctor()
         tools,
         [&allToolsInstalled](const auto& tool)
         { allToolsInstalled = ProcessHandler::runExternalProcess({tool, "--version"}) == 0; });
-        spin.stop();
+    spin.stop();
     fmt::print(allToolsInstalled ? fmt::emphasis::bold | fmt::fg(fmt::color::medium_sea_green)
                                  : fmt::emphasis::underline | fmt::fg(fmt::color::crimson),
                "All tools installed : {}",
@@ -446,7 +432,7 @@ int LeafCommands::run()
             appName = fs::current_path().filename().string();
         }
         ProcessHandler::runExternalProcess(
-            {fmt::format("./.build/release/apps/{}{}", appName, extention).c_str()}, false, true);
+            {fmt::format("./.build/release/src/{}{}", appName, extention).c_str()}, false, true);
     }
     else
     {
@@ -456,7 +442,7 @@ int LeafCommands::run()
             appName = fs::current_path().filename().string();
         }
         ProcessHandler::runExternalProcess(
-            {fmt::format("./.build/debug/apps/{}{}", appName, extention).c_str()}, false, true);
+            {fmt::format("./.build/debug/src/{}{}", appName, extention).c_str()}, false, true);
     }
 
     return 0;

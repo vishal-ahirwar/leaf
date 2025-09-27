@@ -1,5 +1,5 @@
 enable_testing()
-add_executable(tests src/main.cpp)
+add_executable(tests main.cpp)
 find_package(GTest)
 target_link_libraries(tests gtest::gtest utils easyproc)
 include(GoogleTest)

@@ -11,7 +11,7 @@ include(cmake/config.cmake)
 #@add_subproject Warning: Do not remove this line
 
 if(BUILD_APPLICATION)
-    add_subdirectory(apps)
+    add_subdirectory(src)
     add_subdirectory(tests)
 endif(BUILD_APPLICATION)
 
