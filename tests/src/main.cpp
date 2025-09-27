@@ -55,25 +55,25 @@ TEST(ReplaceStringTest, ReplaceWithEmpty)
 TEST(RunExternalProcessTest, Ls)
 {
     std::vector<std::string> command   = {"ls", "-l"};
-    int                      exit_code = runExternalProcess(command);
+    int                      exit_code =ProcessHandler:: runExternalProcess(command);
     ASSERT_EQ(exit_code, 0);
 }
 
 TEST(RunExternalProcessTest, Echo)
 {
     std::vector<std::string> command   = {"echo", "Hello, world!"};
-    int                      exit_code = runExternalProcess(command);
+    int                      exit_code =ProcessHandler:: runExternalProcess(command);
     ASSERT_EQ(exit_code, 0);
 }
 TEST(RunExternalProcessTest, Clang)
 {
     std::vector<std::string> command   = {"clang", "--version"};
-    int                      exit_code = runExternalProcess(command);
+    int                      exit_code = ProcessHandler::runExternalProcess(command);
     ASSERT_EQ(exit_code, 0);
 }
 TEST(RunExternalProcessTest, InvalidCommand)
 {
     std::vector<std::string> command   = {"invalid_command"};
-    int                      exit_code = runExternalProcess(command);
+    int                      exit_code =ProcessHandler:: runExternalProcess(command);
     ASSERT_NE(exit_code, 0);
 }

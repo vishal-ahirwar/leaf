@@ -6,6 +6,7 @@
 #include <fmt/color.h>
 #include <fmt/core.h>
 #include <sago/platform_folders.h>
+#include <spinner.h>
 #include <utils.h>
 
 #include <algorithm>
@@ -95,6 +96,8 @@ LeafCommands::LeafCommands(std::vector<std::string>&& args)
 
 int LeafCommands::install()
 {
+    Spinner spin("Installing dependencies");
+    spin.start();
     std::vector<std::string> conanInstallArgs{"conan",
                                               "install",
                                               ".",
@@ -115,7 +118,8 @@ int LeafCommands::install()
     {
         conanInstallArgs.push_back("build_type=Debug");
     }
-    runExternalProcess(conanInstallArgs);
+    ProcessHandler::runExternalProcess(conanInstallArgs);
+    spin.stop();
     return 0;
 };
 
@@ -219,7 +223,7 @@ int LeafCommands::create()
 
 int LeafCommands::publish()
 {
-    runExternalProcess({"conan", "create", ".", "-b", "missing"});
+    ProcessHandler::runExternalProcess({"conan", "create", ".", "-b", "missing"});
     return 0;
 };
 
@@ -231,7 +235,7 @@ int LeafCommands::upload()
 
 int LeafCommands::runTests()
 {
-    runExternalProcess({"ctest -B .build/Debug/tests"});
+    ProcessHandler::runExternalProcess({"ctest -B .build/Debug/tests"});
     return 0;
 };
 
@@ -244,37 +248,42 @@ int LeafCommands::format()
 int LeafCommands::clean()
 {
     namespace fs = std::filesystem;
+    Spinner spin("Running Clean build");
+    spin.start();
     if (std::ranges::find(_commands->getArgs(), "-r") != _commands->getArgs().end())
     {
         if (!fs::exists(".install/Release"))
             install();
-        runExternalProcess({"cmake",
-                            "-S",
-                            ".",
-                            "-B",
-                            "build-release",
-                            "-DCMAKE_BUILD_TYPE=Release",
-                            "-G Ninja",
-                            "--fresh"});
+        ProcessHandler::runExternalProcess({"cmake",
+                                            "-S",
+                                            ".",
+                                            "-B",
+                                            "build-release",
+                                            "-DCMAKE_BUILD_TYPE=Release",
+                                            "-G Ninja",
+                                            "--fresh"});
     }
     else
     {
         if (!fs::exists(".install/Debug"))
             install();
-        runExternalProcess({"cmake",
-                            "-S",
-                            ".",
-                            "-B",
-                            "build-debug",
-                            "-DCMAKE_BUILD_TYPE=Debug",
-                            "-G Ninja",
-                            "--fresh"});
+        ProcessHandler::runExternalProcess({"cmake",
+                                            "-S",
+                                            ".",
+                                            "-B",
+                                            "build-debug",
+                                            "-DCMAKE_BUILD_TYPE=Debug",
+                                            "-G Ninja",
+                                            "--fresh"});
     }
+    spin.stop();
     return 0;
 };
 
 int LeafCommands::release()
 {
+    Spinner spin("Installing deps in release mode");
+    spin.start();
     std::vector<std::string> conanInstallArgs{"conan",
                                               "install",
                                               ".",
@@ -288,9 +297,12 @@ int LeafCommands::release()
                                               "tools.cmake.cmaketoolchain:user_presets=",
                                               "-o",
                                               "&:build_app=True"};
-    runExternalProcess(conanInstallArgs);
-    runExternalProcess({"cmake", "--preset", "release", "--fresh"});
-    runExternalProcess({"cmake", "--build", ".build/release"});
+    ProcessHandler::runExternalProcess(conanInstallArgs);
+    spin.setDisplayMessage("Generating cmake files");
+    ProcessHandler::runExternalProcess({"cmake", "--preset", "release", "--fresh"});
+    spin.setDisplayMessage("Compiling Project");
+    ProcessHandler::runExternalProcess({"cmake", "--build", ".build/release"});
+    spin.stop();
     return 0;
 };
 
@@ -319,7 +331,8 @@ int LeafCommands::addPackage()
                 auto index = arg.find("/");
                 if (index == std::string::npos)
                 {
-                    fmt::println("error : Invalid package format for {}, try this -> package/version",arg);
+                    fmt::println(
+                        "error : Invalid package format for {}, try this -> package/version", arg);
                     return;
                 }
 
@@ -330,8 +343,13 @@ int LeafCommands::addPackage()
                     std::pair<std::string, std::string>{packageName, packageVersion});
             }
         });
-    
-        std::ranges::for_each(packagesToInstall,[](const auto&package){fmt::println("Package name : {}, Package version : {}",package.first,package.second);});
+
+    std::ranges::for_each(
+        packagesToInstall,
+        [](const auto& package)
+        {
+            fmt::println("Package name : {}, Package version : {}", package.first, package.second);
+        });
     return 0;
 };
 
@@ -355,47 +373,60 @@ int LeafCommands::addLib()
 
 int LeafCommands::doctor()
 {
+    Spinner spin("Checking required Toolchain");
+    spin.start();
     std::vector<std::string> tools{"clang", "cmake", "ninja", "conan"};
 
     bool allToolsInstalled{false};
 
-    std::ranges::for_each(tools,
-                          [&allToolsInstalled](const auto& tool)
-                          { allToolsInstalled = runExternalProcess({tool, "--version"}) == 0; });
-
+    std::ranges::for_each(
+        tools,
+        [&allToolsInstalled](const auto& tool)
+        { allToolsInstalled = ProcessHandler::runExternalProcess({tool, "--version"}) == 0; });
+        spin.stop();
     fmt::print(allToolsInstalled ? fmt::emphasis::bold | fmt::fg(fmt::color::medium_sea_green)
                                  : fmt::emphasis::underline | fmt::fg(fmt::color::crimson),
                "All tools installed : {}",
                allToolsInstalled ? "True" : "False");
+
     return 0;
 };
 
 int LeafCommands::build()
 {
     namespace fs = std::filesystem;
+    Spinner spin("Building project");
+    spin.start();
     if (!fs::exists(".install"))
     {
         install();
     };
     if (!fs::exists(".build/debug"))
     {
-        runExternalProcess({"cmake", "--preset", "debug", "--fresh"});
+        spin.setDisplayMessage("Generating cmake files");
+        ProcessHandler::runExternalProcess({"cmake", "--preset", "debug", "--fresh"});
     }
-
-    runExternalProcess({"cmake", "--build", ".build/debug"});
+    spin.setDisplayMessage("Compiling");
+    ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"});
+    spin.stop();
     return 0;
 }
 
 int LeafCommands::compile()
 {
+    Spinner spin("Compiling");
+    spin.start();
     if (std::ranges::find(_commands->getArgs(), "-r") != _commands->getArgs().end())
     {
-        runExternalProcess({"cmake", "--build", ".build/release"});
+        spin.setDisplayMessage("Compiling in release mode");
+        ProcessHandler::runExternalProcess({"cmake", "--build", ".build/release"});
     }
     else
     {
-        runExternalProcess({"cmake", "--build", ".build/debug"});
+        spin.setDisplayMessage("Compiling in debug mode");
+        ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"});
     }
+    spin.stop();
     return 0;
 }
 
@@ -414,7 +445,8 @@ int LeafCommands::run()
         {
             appName = fs::current_path().filename().string();
         }
-        runExternalProcess({fmt::format("./.build/release/apps/{}{}", appName, extention).c_str()});
+        ProcessHandler::runExternalProcess(
+            {fmt::format("./.build/release/apps/{}{}", appName, extention).c_str()}, false, true);
     }
     else
     {
@@ -423,8 +455,10 @@ int LeafCommands::run()
         {
             appName = fs::current_path().filename().string();
         }
-        runExternalProcess({fmt::format("./.build/debug/apps/{}{}", appName, extention).c_str()});
+        ProcessHandler::runExternalProcess(
+            {fmt::format("./.build/debug/apps/{}{}", appName, extention).c_str()}, false, true);
     }
+
     return 0;
 }
 
