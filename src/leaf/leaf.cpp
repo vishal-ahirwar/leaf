@@ -4,9 +4,9 @@
 #include <fmt/core.h>
 #include <leafconfig.h>
 
-#include "commands.h"
+#include "../../libs/commands/include/commands.h"
+#include "../../libs/utils/include/utils.h"
 #include "leafcommands.h"
-#include "utils.h"
 
 int main(int argc, char** argv)
 {

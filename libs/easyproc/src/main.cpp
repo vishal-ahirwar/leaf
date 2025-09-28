@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "easyproc.h"
+#include "../include/easyproc.h"
 
 static int fail(std::error_code ec)
 {

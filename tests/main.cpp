@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include "utils.h"
-#include "easyproc.h"
+#include "../libs/easyproc/include/easyproc.h"
+#include "../libs/utils/include/utils.h"
 
 using namespace std::string_literals;
 

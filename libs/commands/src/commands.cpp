@@ -1,4 +1,4 @@
-#include "commands.h"
+#include "../include/commands.h"
 
 #include <fmt/base.h>
 #include <fmt/color.h>

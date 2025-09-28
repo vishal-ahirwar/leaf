@@ -2,12 +2,12 @@
 
 #include <downloder.h>
 #include <easyproc.h>
+#include <utils.h>
 #include <fmt/base.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
 #include <sago/platform_folders.h>
 #include <spinner.h>
-#include <utils.h>
 
 #include <algorithm>
 #include <filesystem>

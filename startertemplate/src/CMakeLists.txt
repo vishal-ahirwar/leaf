@@ -1,2 +1,2 @@
-add_executable(%APPNAME% %APPNAME%.cpp)
+add_executable(%APPNAME% %APPNAME%/%APPNAME%.cpp)
 target_link_libraries(%APPNAME% %LIBNAME%)
