@@ -129,6 +129,8 @@ LeafCommands::LeafCommands(std::vector<std::string>&& args)
 
     _commands->registerCommands(
         "addpkg", "Add external library to your project", [this]() { return this->addPackage(); });
+    _commands->registerCommands("docs","Generate docs for your project using doxygen",[this]()->int{return this->generateDocs();});
+    _commands->registerCommands("tests","Run tests project wide using ctest",[this]()->int{return this->runTests();});
 };
 
 int LeafCommands::install()
@@ -146,14 +148,14 @@ int LeafCommands::install()
                                               "tools.cmake.cmaketoolchain:user_presets=",
                                               "-o",
                                               "&:build_app=True"};
-    conanInstallArgs.push_back("-s");
+    conanInstallArgs.emplace_back("-s");
     if (std::ranges::find(_commands->getArgs(), "-r") != _commands->getArgs().end())
     {
-        conanInstallArgs.push_back("build_type=Release");
+        conanInstallArgs.emplace_back("build_type=Release");
     }
     else
     {
-        conanInstallArgs.push_back("build_type=Debug");
+        conanInstallArgs.emplace_back("build_type=Debug");
     }
     ProcessHandler::runExternalProcess(conanInstallArgs);
     spin.stop();
@@ -466,7 +468,7 @@ int LeafCommands::run()
 #ifdef _WIN322
     std::string extention = ".exe";
 #else
-    std::string extention = "";
+    std::string extention{};
 #endif
     if (std::ranges::find(_commands->getArgs(), "-r") != _commands->getArgs().end())
     {
@@ -476,7 +478,7 @@ int LeafCommands::run()
             appName = fs::current_path().filename().string();
         }
         ProcessHandler::runExternalProcess(
-            {fmt::format("./.build/release/src/{}{}", appName, extention).c_str()}, false, true);
+            {fmt::format("./.build/release/src/{}{}", appName, extention)}, false, true);
     }
     else
     {
@@ -486,7 +488,7 @@ int LeafCommands::run()
             appName = fs::current_path().filename().string();
         }
         ProcessHandler::runExternalProcess(
-            {fmt::format("./.build/debug/src/{}{}", appName, extention).c_str()}, false, true);
+            {fmt::format("./.build/debug/src/{}{}", appName, extention)}, false, true);
     }
 
     return 0;
@@ -515,6 +517,11 @@ int LeafCommands::help()
                                          command.second.first);
                           });
     fmt::println("");
+    return 0;
+}
+int LeafCommands::generateDocs()
+{
+    //TODO
     return 0;
 }
 

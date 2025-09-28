@@ -71,5 +71,7 @@ private:
 
     int help();
 
+    int generateDocs();
+
     int version() const;
 };
