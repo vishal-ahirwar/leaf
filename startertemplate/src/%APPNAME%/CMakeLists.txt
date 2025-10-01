@@ -1,1 +1,1 @@
-add_executable(%APPNAME% %APPNAME%/%APPNAME%.cpp)
+add_executable(%APPNAME% %APPNAME%.cpp)
