@@ -394,12 +394,196 @@ int LeafCommands::removePackage()
 int LeafCommands::addApp()
 {
     // TODO
+ // TODO
+    std::string project_name{};
+    fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::light_green),
+              "What would you like to name your app? ");
+
+    std::getline(std::cin, project_name);
+    if (project_name.find(" ") != std::string::npos || project_name.empty())
+    {
+        fmt::println("App name can't be empty and can't have whitespaces in their name!");
+        return 0;
+    }
+    std::map<std::string, std::string> replacements{{"%APPNAME%", project_name}};
+    auto home=sago::getConfigHome();
+    namespace fs = std::filesystem;
+    if (fs::exists(home))
+    {
+        auto starter_template = fs::path(home) / ".leaf" / "startertemplate";
+        if (!fs::exists(starter_template))
+        {
+            fs::create_directories(starter_template);
+            downloadGithubDirectory(
+                "vishal-ahirwar", "leaf", "startertemplate", starter_template.string());
+        }
+        if (!fs::exists(starter_template))
+        {
+            fmt::println("Could not find or download start template code!");
+            return 1;
+        };
+        if (!fs::exists(fs::current_path() / project_name))
+        {
+            fs::create_directories(fs::current_path() / project_name);
+        }
+
+        for (const auto& templateContent : fs::recursive_directory_iterator(starter_template))
+        {
+            auto     oldPath = templateContent.path().string();
+            fs::path newPath{};
+            auto     index = oldPath.find("startertemplate");
+            if (index != std::string::npos)
+            {
+                newPath = (fs::current_path() / oldPath.substr(index));
+            }
+            index=oldPath.find("%APPNAME%");
+            if (index == std::string::npos)
+            {
+                continue;
+            }
+
+            std::string name          = newPath.filename().string();
+            std::string newPathString = newPath.string();
+            std::ranges::for_each(replacements,
+                                  [&newPathString](const auto& rep)
+                                  { replaceString(newPathString, rep.first, rep.second); });
+            if (templateContent.is_directory())
+            {
+                if (fs::create_directories(newPathString))
+                {
+                    fmt::print("Directory created :{}\n", newPathString);
+                }
+            }
+            else
+            {
+                fmt::print("File created:{}\n", newPathString);
+
+                std::ifstream in(oldPath);
+                std::string   content{};
+                in >> std::noskipws;
+
+                std::ranges::copy(std::istream_iterator<char>(in),
+                                  std::istream_iterator<char>{},
+                                  std::back_inserter(content));
+                std::ranges::for_each(replacements,
+                                      [&content](const auto& rep)
+                                      { replaceString(content, rep.first, rep.second); });
+                std::ofstream out(newPathString);
+                out << content;
+                out.close();
+            }
+        }
+    }
+    else
+    {
+        fmt::print("{} does not exist!\n", home);
+        return -1;
+    }
+
+
+    std::ofstream cmake("src/CMakeLists.txt",std::ios::app);
+    if (cmake.is_open())
+    {
+        cmake<<"add_executable("<<project_name<<" "<<project_name<<".cpp)\n";
+    }
+    cmake.close();
     return 0;
 };
 
 int LeafCommands::addLib()
 {
     // TODO
+    std::string project_name{};
+    fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::light_green),
+              "What would you like to name your lib? ");
+
+    std::getline(std::cin, project_name);
+    if (project_name.find(" ") != std::string::npos || project_name.empty())
+    {
+        fmt::println("Lib name can't be empty and can't have whitespaces in their name!");
+        return 0;
+    }
+    std::map<std::string, std::string> replacements{{"%LIBNAME%", project_name}};
+    auto home=sago::getConfigHome();
+    namespace fs = std::filesystem;
+    if (fs::exists(home))
+    {
+        auto starter_template = fs::path(home) / ".leaf" / "startertemplate";
+        if (!fs::exists(starter_template))
+        {
+            fs::create_directories(starter_template);
+            downloadGithubDirectory(
+                "vishal-ahirwar", "leaf", "startertemplate", starter_template.string());
+        }
+        if (!fs::exists(starter_template))
+        {
+            fmt::println("Could not find or download start template code!");
+            return 1;
+        };
+        if (!fs::exists(fs::current_path() / project_name))
+        {
+            fs::create_directories(fs::current_path() / project_name);
+        }
+
+        for (const auto& templateContent : fs::recursive_directory_iterator(starter_template))
+        {
+            auto     oldPath = templateContent.path().string();
+            fs::path newPath{};
+            auto     index = oldPath.find("startertemplate");
+            if (index != std::string::npos)
+            {
+                newPath = (fs::current_path() / oldPath.substr(index));
+            }
+            index=oldPath.find("%LIBNAME%");
+            if (index == std::string::npos)
+            {
+                continue;
+            }
+
+            std::string name          = newPath.filename().string();
+            std::string newPathString = newPath.string();
+            std::ranges::for_each(replacements,
+                                  [&newPathString](const auto& rep)
+                                  { replaceString(newPathString, rep.first, rep.second); });
+            if (templateContent.is_directory())
+            {
+                if (fs::create_directories(newPathString))
+                {
+                    fmt::print("Directory created :{}\n", newPathString);
+                }
+            }
+            else
+            {
+                fmt::print("File created:{}\n", newPathString);
+
+                std::ifstream in(oldPath);
+                std::string   content{};
+                in >> std::noskipws;
+
+                std::ranges::copy(std::istream_iterator<char>(in),
+                                  std::istream_iterator<char>{},
+                                  std::back_inserter(content));
+                std::ranges::for_each(replacements,
+                                      [&content](const auto& rep)
+                                      { replaceString(content, rep.first, rep.second); });
+                std::ofstream out(newPathString);
+                out << content;
+                out.close();
+            }
+        }
+    }
+    else
+    {
+        fmt::print("{} does not exist!\n", home);
+        return -1;
+    }
+
+    std::ofstream cmake{"libs/CMakeLists.txt",std::ios::app};
+    if (cmake.is_open())
+    {
+        cmake<<"add_subdirectory("<<project_name<<")\n";
+        cmake.close();
+    }
     return 0;
 };
 
