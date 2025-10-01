@@ -157,7 +157,9 @@ int LeafCommands::install()
     {
         conanInstallArgs.emplace_back("build_type=Debug");
     }
-    ProcessHandler::runExternalProcess(conanInstallArgs);
+    if (0!=ProcessHandler::runExternalProcess(conanInstallArgs))       {
+        fmt::println("{}",ProcessHandler::getLog());
+    };;
     spin.stop();
     return 0;
 };
@@ -189,7 +191,7 @@ int LeafCommands::create()
     lib_name = lib_name.empty() ? project_name + "lib" : lib_name;
 
     std::map<std::string, std::string> replacements{
-        {"%APPNAME%", project_name}, {"%LIBNAME%", lib_name}, {"startertemplate", project_name}};
+        {"%APPNAME%", project_name}, {"%LIBNAME%", lib_name}, {"startertemplate", project_name},{"%WORKSPACE%",project_name}};
     auto home = sago::getConfigHome();
     if (fs::exists(home))
     {
@@ -266,8 +268,7 @@ int LeafCommands::publish()
     spin.start();
     if (0 != ProcessHandler::runExternalProcess({"conan", "create", ".", "-b", "missing"}))
     {
-        spin.stop();
-        std::cout << "Error : " << ProcessHandler::getLog() << "\n";
+        fmt::println("{}",ProcessHandler::getLog());
     };
 
     return 0;
@@ -300,13 +301,17 @@ int LeafCommands::clean()
     {
         if (!fs::exists(".install/Release"))
             install();
-        ProcessHandler::runExternalProcess({"cmake", "--preset", "release", "--fresh"});
+        if (0!=ProcessHandler::runExternalProcess({"cmake", "--preset", "release", "--fresh"}))       {
+            fmt::println("{}",ProcessHandler::getLog());
+        };;
     }
     else
     {
         if (!fs::exists(".install/Debug"))
             install();
-        ProcessHandler::runExternalProcess({"cmake", "--preset", "debug", "--fresh"});
+        if (0!=ProcessHandler::runExternalProcess({"cmake", "--preset", "debug", "--fresh"}))       {
+            fmt::println("{}",ProcessHandler::getLog());
+        };;
     }
     spin.stop();
     return 0;
@@ -329,11 +334,18 @@ int LeafCommands::release()
                                               "tools.cmake.cmaketoolchain:user_presets=",
                                               "-o",
                                               "&:build_app=True"};
-    ProcessHandler::runExternalProcess(conanInstallArgs);
+    if (0!=ProcessHandler::runExternalProcess(conanInstallArgs))
+    {
+        fmt::println("{}",ProcessHandler::getLog());
+    };;
     spin.setDisplayMessage("Generating CMake files");
-    ProcessHandler::runExternalProcess({"cmake", "--preset", "release", "--fresh"});
+    if (0!=ProcessHandler::runExternalProcess({"cmake", "--preset", "release", "--fresh"}))       {
+        fmt::println("{}",ProcessHandler::getLog());
+    };;
     spin.setDisplayMessage("Compiling Project");
-    ProcessHandler::runExternalProcess({"cmake", "--build", ".build/release"});
+    if (0!=ProcessHandler::runExternalProcess({"cmake", "--build", ".build/release"}))       {
+        fmt::println("{}",ProcessHandler::getLog());
+    };
     spin.stop();
     return 0;
 };
@@ -405,9 +417,10 @@ int LeafCommands::addApp()
         fmt::println("App name can't be empty and can't have whitespaces in their name!");
         return 0;
     }
-    std::map<std::string, std::string> replacements{{"%APPNAME%", project_name}};
-    auto home=sago::getConfigHome();
     namespace fs = std::filesystem;
+    std::map<std::string, std::string> replacements{{"%APPNAME%", project_name},{"%WORKSPACE%",fs::current_path().filename().string()}};
+    auto home=sago::getConfigHome();
+
     if (fs::exists(home))
     {
         auto starter_template = fs::path(home) / ".leaf" / "startertemplate";
@@ -422,10 +435,6 @@ int LeafCommands::addApp()
             fmt::println("Could not find or download start template code!");
             return 1;
         };
-        if (!fs::exists(fs::current_path() / project_name))
-        {
-            fs::create_directories(fs::current_path() / project_name);
-        }
 
         for (const auto& templateContent : fs::recursive_directory_iterator(starter_template))
         {
@@ -441,7 +450,7 @@ int LeafCommands::addApp()
             {
                 continue;
             }
-
+            newPath = (fs::current_path() /"src"/oldPath.substr(index));
             std::string name          = newPath.filename().string();
             std::string newPathString = newPath.string();
             std::ranges::for_each(replacements,
@@ -484,7 +493,7 @@ int LeafCommands::addApp()
     std::ofstream cmake("src/CMakeLists.txt",std::ios::app);
     if (cmake.is_open())
     {
-        cmake<<"add_executable("<<project_name<<" "<<project_name<<".cpp)\n";
+        cmake<<"add_subdirectory("<<project_name<<")\n";
     }
     cmake.close();
     return 0;
@@ -520,10 +529,6 @@ int LeafCommands::addLib()
             fmt::println("Could not find or download start template code!");
             return 1;
         };
-        if (!fs::exists(fs::current_path() / project_name))
-        {
-            fs::create_directories(fs::current_path() / project_name);
-        }
 
         for (const auto& templateContent : fs::recursive_directory_iterator(starter_template))
         {
@@ -537,9 +542,10 @@ int LeafCommands::addLib()
             index=oldPath.find("%LIBNAME%");
             if (index == std::string::npos)
             {
+
                 continue;
             }
-
+            newPath = (fs::current_path() /"libs"/oldPath.substr(index));
             std::string name          = newPath.filename().string();
             std::string newPathString = newPath.string();
             std::ranges::for_each(replacements,
@@ -620,10 +626,14 @@ int LeafCommands::build()
     if (!fs::exists(".build/debug"))
     {
         spin.setDisplayMessage("Generating cmake files");
-        ProcessHandler::runExternalProcess({"cmake", "--preset", "debug", "--fresh"});
+        if (0!=ProcessHandler::runExternalProcess({"cmake", "--preset", "debug", "--fresh"}))       {
+            fmt::println("{}",ProcessHandler::getLog());
+        };;
     }
     spin.setDisplayMessage("Compiling");
-    ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"});
+    if (0!=ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"}))       {
+        fmt::println("{}",ProcessHandler::getLog());
+    };;
     spin.stop();
     return 0;
 }
@@ -635,12 +645,17 @@ int LeafCommands::compile()
     if (std::ranges::find(_commands->getArgs(), "-r") != _commands->getArgs().end())
     {
         spin.setDisplayMessage("Compiling in release mode");
-        ProcessHandler::runExternalProcess({"cmake", "--build", ".build/release"});
+        if (0!=ProcessHandler::runExternalProcess({"cmake", "--build", ".build/release"}))       {
+            fmt::println("{}",ProcessHandler::getLog());
+        };;
     }
     else
     {
         spin.setDisplayMessage("Compiling in debug mode");
-        ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"});
+        if (ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"})!=0)
+        {
+            fmt::println("{}",ProcessHandler::getLog());
+        };
     }
     spin.stop();
     return 0;
@@ -662,7 +677,7 @@ int LeafCommands::run()
             appName = fs::current_path().filename().string();
         }
         ProcessHandler::runExternalProcess(
-            {fmt::format("./.build/release/src/{}{}", appName, extention)}, false, true);
+            {fmt::format("./.build/release/src/{}/{}{}", appName, appName,extention)}, false, true);
     }
     else
     {
@@ -672,7 +687,7 @@ int LeafCommands::run()
             appName = fs::current_path().filename().string();
         }
         ProcessHandler::runExternalProcess(
-            {fmt::format("./.build/debug/src/{}{}", appName, extention)}, false, true);
+            {fmt::format("./.build/debug/src/{}/{}{}", appName,appName, extention)}, false, true);
     }
 
     return 0;

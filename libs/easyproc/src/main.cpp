@@ -89,7 +89,7 @@ int ProcessHandler::runExternalProcess(const std::vector<std::string>& args,
         out.close();
     }
 
-    return ec ? ec.value() : 0;
+    return status;
 }
 
 const std::string& ProcessHandler::getLog()
