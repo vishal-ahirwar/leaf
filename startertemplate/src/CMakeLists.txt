@@ -1,1 +1,1 @@
-add_subdirectory(%APPNAME%%)
+add_subdirectory(%APPNAME%)
