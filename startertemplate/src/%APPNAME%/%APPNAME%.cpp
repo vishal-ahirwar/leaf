@@ -1,4 +1,4 @@
-#include<%PROJECTNAME%config.h>
+#include<%APPNAME%config.h>
 #include <iostream>
 int main() {
     std::cout<<Project::NAME<<std::endl;
