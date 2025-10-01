@@ -59,13 +59,12 @@ const  std::vector<std::string>& Commands::getArgs()const{
 #include "leafconfig.h"
 
 LeafCommands::LeafCommands(std::vector<std::string>&& args)
-    : _commands(new Commands(std::move(args),
+    : _commands(std::make_unique<Commands>(Commands(std::move(args),
                              []()
                              {
                                  fmt::print("🍃 Leaf - A modern C++ project manager.\n");
                                  fmt::print("Run 'leaf help' for a list of commands.\n");
-                             })),
-      _args(args)
+                             }))),_args(args)
 {
     _commands->registerCommands(
         "create",
