@@ -318,29 +318,43 @@ int LeafCommands::clean()
 
 int LeafCommands::release()
 {
-    Spinner spin("Installing deps in release mode");
-    spin.start();
-    std::vector<std::string> conanInstallArgs{"conan",
-                                              "install",
-                                              ".",
-                                              "-of",
-                                              ".install",
-                                              "-b",
-                                              "missing",
-                                              "-s",
-                                              "build_type=Release",
-                                              "-c",
-                                              "tools.cmake.cmaketoolchain:user_presets=",
-                                              "-o",
-                                              "&:build_app=True"};
-    if (0!=ProcessHandler::runExternalProcess(conanInstallArgs))
+    namespace fs=std::filesystem;
+    Spinner spin;
+    if (fs::exists("conanfile.txt")||fs::exists("conanfile.py"))
     {
-        fmt::println("{}",ProcessHandler::getLog());
-    };;
+        spin.setDisplayMessage("Installing deps in release mode");
+        spin.start();
+        std::vector<std::string> conanInstallArgs{"conan",
+                                                  "install",
+                                                  ".",
+                                                  "-of",
+                                                  ".install",
+                                                  "-b",
+                                                  "missing",
+                                                  "-s",
+                                                  "build_type=Release",
+                                                  "-c",
+                                                  "tools.cmake.cmaketoolchain:user_presets=",
+                                                  "-o",
+                                                  "&:build_app=True"};
+        if (0!=ProcessHandler::runExternalProcess(conanInstallArgs))
+        {
+            fmt::println("{}",ProcessHandler::getLog());
+        };;
+    }
+
     spin.setDisplayMessage("Generating CMake files");
-    if (0!=ProcessHandler::runExternalProcess({"cmake", "--preset", "release", "--fresh"}))       {
-        fmt::println("{}",ProcessHandler::getLog());
-    };;
+    if (fs::exists("CMakePresets.json"))
+    {
+        if (0!=ProcessHandler::runExternalProcess({"cmake", "--preset", "release", "--fresh"}))       {
+            fmt::println("{}",ProcessHandler::getLog());
+        };;
+    }else
+    {
+        if (0!=ProcessHandler::runExternalProcess({"cmake", "-S", ".", "-B", ".build/release","-G","Ninja","-DBUILD_TYPE=Release"}))       {
+            fmt::println("{}",ProcessHandler::getLog());
+        };;
+    }
     spin.setDisplayMessage("Compiling Project");
     if (0!=ProcessHandler::runExternalProcess({"cmake", "--build", ".build/release"}))       {
         fmt::println("{}",ProcessHandler::getLog());
@@ -604,7 +618,13 @@ int LeafCommands::doctor()
     std::ranges::for_each(
         tools,
         [&allToolsInstalled](const auto& tool)
-        { allToolsInstalled = ProcessHandler::runExternalProcess({tool, "--version"}) == 0; });
+        {
+            allToolsInstalled = ProcessHandler::runExternalProcess({tool, "--version"}) == 0;
+            if (!allToolsInstalled)
+            {
+                fmt::println("{}",ProcessHandler::getLog());
+            }
+        });
     spin.stop();
     fmt::print(allToolsInstalled ? fmt::emphasis::bold | fmt::fg(fmt::color::medium_sea_green)
                                  : fmt::emphasis::underline | fmt::fg(fmt::color::crimson),
@@ -616,13 +636,17 @@ int LeafCommands::doctor()
 
 int LeafCommands::build()
 {
+
     namespace fs = std::filesystem;
-    Spinner spin("Building project");
-    spin.start();
+    if (fs::exists("CMakePresets.json"))
+    {
+
     if (!fs::exists(".install"))
     {
         install();
     };
+        Spinner spin("Building project");
+        spin.start();
     if (!fs::exists(".build/debug"))
     {
         spin.setDisplayMessage("Generating cmake files");
@@ -633,8 +657,30 @@ int LeafCommands::build()
     spin.setDisplayMessage("Compiling");
     if (0!=ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"}))       {
         fmt::println("{}",ProcessHandler::getLog());
-    };;
+    };
     spin.stop();
+    }else
+    {
+
+        Spinner spin("Building project");
+        spin.start();
+        if (!fs::exists(".install") && (fs::exists("conanfile.txt")||fs::exists("conanfile.py")))
+        {
+            install();
+        };
+        if (!fs::exists(".build/debug"))
+        {
+            spin.setDisplayMessage("Generating cmake files");
+            if (0!=ProcessHandler::runExternalProcess({"cmake", "-S", ".", "-B", ".build/debug","-G","Ninja","-DBUILD_TYPE=Debug"}))       {
+                fmt::println("{}",ProcessHandler::getLog());
+            };;
+        }
+        spin.setDisplayMessage("Compiling");
+        if (0!=ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"}))       {
+            fmt::println("{}",ProcessHandler::getLog());
+        };
+        spin.stop();
+    }
     return 0;
 }
 
