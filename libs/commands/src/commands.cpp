@@ -511,9 +511,10 @@ int LeafCommands::addLib()
         fmt::println("Lib name can't be empty and can't have whitespaces in their name!");
         return 0;
     }
-    std::map<std::string, std::string> replacements{{"%LIBNAME%", project_name}};
-    auto home=sago::getConfigHome();
     namespace fs = std::filesystem;
+    std::map<std::string, std::string> replacements{{"%LIBNAME%", project_name},{"%WORKSPACE%",fs::current_path().filename().string()}};
+    auto home=sago::getConfigHome();
+
     if (fs::exists(home))
     {
         auto starter_template = fs::path(home) / ".leaf" / "startertemplate";
