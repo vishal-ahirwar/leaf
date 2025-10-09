@@ -11,6 +11,9 @@
 
 #include "../include/downloder.h"
 
+namespace Leaf
+{
+
 std::string urlEncode(const std::string& value)
 {
     std::ostringstream escaped;
@@ -143,4 +146,5 @@ void downloadGithubDirectory(const std::string& owner,
             downloadGithubDirectory(owner, repo, itemRepoPath, localItemPath.string());
         }
     }
+}
 }

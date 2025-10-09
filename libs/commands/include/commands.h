@@ -3,6 +3,10 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <memory>
+
+namespace Leaf
+{
 
 class Commands
 {
@@ -11,30 +15,32 @@ class Commands
 
     std::vector<std::string> _args{};
 
-    std::function<void(void)>_default{};
+    std::function<void(void)> _default{};
 
   public:
     Commands() = delete;
-    Commands(std::vector<std::string>&& args,std::function<void(void)>default_func) : _args(args),_default(default_func) {};
-    const std::unordered_map<std::string, std::pair<std::string, std::function<int()>>>&getCommands()const;
-    void registerCommands(std::string&&command,std::string&&description,const std::function<int(void)>&callable);
-    const  std::vector<std::string>&getArgs()const;
-    int exec();
+    Commands(std::vector<std::string>&& args, std::function<void(void)> default_func)
+        : _args(args), _default(default_func) {};
+    const std::unordered_map<std::string, std::pair<std::string, std::function<int()>>>&
+                                    getCommands() const;
+    void                            registerCommands(std::string&&                   command,
+                                                     std::string&&                   description,
+                                                     const std::function<int(void)>& callable);
+    const std::vector<std::string>& getArgs() const;
+    int                             exec();
 };
-
-#include <memory>
 
 class LeafCommands
 {
     std::unique_ptr<Commands> _commands{};
     std::vector<std::string>  _args{};
 
-public:
+  public:
     LeafCommands() = delete;
     LeafCommands(std::vector<std::string>&& args);
     int exec();
 
-private:
+  private:
     int install();
 
     int create();
@@ -75,3 +81,4 @@ private:
 
     int version() const;
 };
+} // namespace Leaf

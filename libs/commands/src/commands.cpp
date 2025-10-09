@@ -1,14 +1,23 @@
-#include "../include/commands.h"
-
+#include <commands.h>
+#include <downloder.h>
+#include <easyproc.h>
 #include <fmt/base.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
+#include <sago/platform_folders.h>
+#include <spinner.h>
+#include <utils.h>
 
 #include <algorithm>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <string>
-#include<logger.h>
+#include <vector>
 
-
+#include "leafconfig.h"
+namespace Leaf
+{
 int Commands::exec()
 {
     if (_args.size() < 2)
@@ -42,22 +51,10 @@ const std::unordered_map<std::string, std::pair<std::string, std::function<int()
 const  std::vector<std::string>& Commands::getArgs()const{
     return _args;
 }
+}
 
-#include <downloder.h>
-#include <easyproc.h>
-#include <sago/platform_folders.h>
-#include <spinner.h>
-#include <utils.h>
 
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-#include <iterator>
-#include <map>
-#include <utility>
-#include <vector>
-
-#include "leafconfig.h"
+namespace Leaf{
 
 LeafCommands::LeafCommands(std::vector<std::string>&& args)
     : _commands(std::make_unique<Commands>(Commands(std::move(args),
@@ -67,6 +64,7 @@ LeafCommands::LeafCommands(std::vector<std::string>&& args)
                                  fmt::print("Run 'leaf help' for a list of commands.\n");
                              }))),_args(args)
 {
+
     _commands->registerCommands(
         "create",
         "Generates a new, fully structured Leaf project in a new directory.",
@@ -780,4 +778,6 @@ int LeafCommands::version() const
 int LeafCommands::exec()
 {
     return _commands->exec();
+}
+
 }

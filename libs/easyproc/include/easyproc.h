@@ -1,6 +1,9 @@
 #pragma once
 #include <vector>
 #include<string>
+namespace Leaf
+{
+
 
 class ProcessHandler{
     inline static std::string log{};
@@ -9,3 +12,4 @@ class ProcessHandler{
     static const std::string&getLog();
 };
 
+}

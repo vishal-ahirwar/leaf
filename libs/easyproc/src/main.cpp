@@ -13,6 +13,10 @@
 
 #include "../include/easyproc.h"
 
+namespace Leaf
+{
+
+
 static int fail(std::error_code ec)
 {
     std::cerr << ec.message();
@@ -96,3 +100,4 @@ const std::string& ProcessHandler::getLog()
 {
     return ProcessHandler::log;
 };
+}
