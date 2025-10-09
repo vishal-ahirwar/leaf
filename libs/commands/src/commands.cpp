@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <string>
+#include<logger.h>
 
 
 int Commands::exec()

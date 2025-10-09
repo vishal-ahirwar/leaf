@@ -2,7 +2,7 @@
 add_library(commands src/commands.cpp)
 target_include_directories(commands PUBLIC include)
 
-target_link_libraries(commands PRIVATE fmt::fmt downloader easyproc utils sago::platform_folders spinner::spinner)
+target_link_libraries(commands PRIVATE fmt::fmt downloader easyproc utils sago::platform_folders spinner::spinner logger)
 
 install(TARGETS commands)
 install(DIRECTORY include/ DESTINATION include/commands)
