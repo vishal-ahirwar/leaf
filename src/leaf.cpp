@@ -3,7 +3,6 @@
 
 int main(int argc, char** argv)
 {
-    auto args = betterArgs(argc, argv);
-    LeafCommands commands(std::move(args));
+    LeafCommands commands(betterArgs(argc, argv));
     return commands.exec();
 }

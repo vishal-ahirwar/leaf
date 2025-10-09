@@ -4,3 +4,5 @@
 .idea
 __pycache__
 .install
+
+build.log
