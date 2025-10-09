@@ -1,5 +1,6 @@
 #pragma once
 
 #include <string>
-
-void hello(const std::string& name);
+namespace %LIBNAME%{
+    void hello(const std::string& name);
+}
