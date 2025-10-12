@@ -1,4 +1,1 @@
-[1/4] Building CXX object libs\CMakeFiles\easyproc.dir\easyproc\src\main.cpp.obj
-[2/4] Linking CXX static library libs\easyproc.lib
-[3/4] Linking CXX executable tests\tests.exe
-[4/4] Linking CXX executable src\leaf.exe
+ninja: no work to do.

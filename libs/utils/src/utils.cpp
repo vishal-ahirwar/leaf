@@ -10,7 +10,6 @@
 namespace Leaf
 {
 
-
 bool replaceString(std::string& str, const std::string& from, const std::string& to)
 {
     if (str.empty())
@@ -34,4 +33,12 @@ std::vector<std::string> betterArgs(size_t argc, char** argv)
         args.push_back(argv[i]);
     }
     return args;
-}}
+}
+void printLeafConfigPath()
+{
+}
+int generateProfiles()
+{
+    return 0;
+}
+} // namespace Leaf

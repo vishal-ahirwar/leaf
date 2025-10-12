@@ -70,9 +70,7 @@ void download(const std::string& url, const std::string& outputFilePath)
         std::ofstream outputFile(outputFilePath, std::ios::binary);
         if (!outputFile.is_open())
         {
-            fmt::println(
-                "\n{}",
-                fmt::format("failed to save  \033[32m{}\033[0m", outputFilePath));  
+            fmt::println("\n{}", fmt::format("failed to save  \033[32m{}\033[0m", outputFilePath));
             outputFile.close();
             return;
         }
@@ -84,7 +82,8 @@ void download(const std::string& url, const std::string& outputFilePath)
     else
     {
         fmt::println("\n{}",
-                     fmt::format("{}. Status code:\033[32m{}\033[0m",response.status_line,
+                     fmt::format("{}. Status code:\033[32m{}\033[0m",
+                                 response.status_line,
                                  response.status_code));
     }
 }
@@ -147,4 +146,4 @@ void downloadGithubDirectory(const std::string& owner,
         }
     }
 }
-}
+} // namespace Leaf

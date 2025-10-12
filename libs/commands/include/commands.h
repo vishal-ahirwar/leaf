@@ -1,9 +1,9 @@
 #pragma once
 #include <functional>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace Leaf
 {
@@ -80,5 +80,7 @@ class LeafCommands
     int generateDocs();
 
     int version() const;
+
+    int setupToolChain();
 };
 } // namespace Leaf
