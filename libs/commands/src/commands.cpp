@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <regex>
 #include <string>
 #include <vector>
 
@@ -25,16 +26,21 @@ int Commands::exec()
         _default();
         return 1;
     }
-
+    bool commandExists{false};
     std::for_each(_args.begin() + 1,
                   _args.end(),
-                  [this](const auto& command)
+                  [this,&commandExists](const auto& command)
                   {
                       if (const auto& result = _commands.find(command); result != _commands.end())
                       {
+                          commandExists=true;
                           result->second.second();
                       }
                   });
+    if (!commandExists)
+    {
+        _default();
+    }
     return 0;
 }
 
@@ -400,9 +406,14 @@ int LeafCommands::release()
 
 int LeafCommands::addPackage()
 {
+    auto escapeRegex=[](const std::string &str) {
+        static const std::regex special(R"([.^$|()\\[*+?{}])");
+        return std::regex_replace(str, special, R"(\$&)");
+    };
+
     // TODO
-    if (_args.size() <= 3 &&
-        std::ranges::any_of(_args, [](const auto& str) { return str == "-r"; }))
+    if (_args.size() <= 2 ||
+        (std::ranges::any_of(_args, [](const auto& str) { return str == "-r"; })&&_args.size() < 3))
     {
         fmt::println("error : Alteast one package/version needs to provided!");
         return -1;
@@ -412,7 +423,7 @@ int LeafCommands::addPackage()
     std::for_each(
         _args.begin() + 2,
         _args.end(),
-        [&installInReleaseMode, &packagesToInstall](const std::string& arg)
+        [&installInReleaseMode, &packagesToInstall,&escapeRegex](const std::string& arg)
         {
             if (arg == "-r")
             {
@@ -423,25 +434,108 @@ int LeafCommands::addPackage()
                 auto index = arg.find("/");
                 if (index == std::string::npos)
                 {
-                    fmt::println(
-                        "error : Invalid package format for {}, try this -> package/version", arg);
-                    return;
+                    fmt::println("No Version provided for package {} fetching latest ...",arg);
                 }
 
-                auto packageName    = arg.substr(0, index);
-                auto packageVersion = arg.substr(++index);
+                std::string packageName{};
+                packageName= index!=std::string::npos? arg.substr(0, index):arg;
+                std::string packageVersion{};
+                packageVersion= index!=std::string::npos? arg.substr(++index):"";
+                std::string escapedName = escapeRegex(packageName);
+                std::string escapedVersion = escapeRegex(packageVersion);
 
-                packagesToInstall.push_back(
-                    std::pair<std::string, std::string>{packageName, packageVersion});
+                // Build the pattern safely
+                std::string patternStr;
+                if (packageVersion.empty())
+                    patternStr = escapedName + R"(/(\d+(?:\.\d+)+))";  // Match any version
+                else
+                    patternStr = escapedName + "/" + escapedVersion;
+
+                std::regex pattern(patternStr);
+                if (auto code=Leaf::ProcessHandler::runExternalProcess({"conan","search",packageName+(packageVersion.empty()?"":"/"+packageVersion)});code==0)
+                {
+                    auto log=Leaf::ProcessHandler::getLog();
+
+                    std::smatch match;
+                    for (std::sregex_iterator it(log.begin(), log.end(), pattern), end; it != end; ++it) {
+                        match = *it; // keep overwriting until last one
+                    }
+                    if (!match.empty())
+                    {
+                        auto result=match[0].str();
+                        fmt::println("Found {}",result);
+                        auto index=result.find('/');
+                        if (index != std::string::npos)
+                        {
+                            packageName=result.substr(0, index);
+                            packageVersion=result.substr(index+1);
+                        }
+                        packagesToInstall.push_back(
+                        std::pair<std::string, std::string>{packageName, packageVersion});
+                    }else
+                    {
+                        fmt::println("{} not found",packageName);
+                    }
+
+                }
+
             }
         });
 
+    std::ifstream in("conanfile.py");
+    if (!in.is_open())
+    {
+        fmt::println("failed to open conanfile.py");
+        return -1;
+    };
+    in>>std::noskipws;
+    std::string lines{};
+    std::copy(std::istreambuf_iterator<char>(in),std::istreambuf_iterator<char>(),std::back_inserter(lines));
+    in.close();
     std::ranges::for_each(
         packagesToInstall,
-        [](const auto& package)
+        [&lines](const auto& package)
         {
-            fmt::println("Package name : {}, Package version : {}", package.first, package.second);
+            fmt::println("Package name : {}, Package version : {} Ready to be installed", package.first, package.second);
+            auto index=lines.find("def requirements(self):");
+            if (index != std::string::npos)
+            {
+                auto lineEnd = lines.find('\n', index);
+                if (lineEnd == std::string::npos)
+                    lineEnd = lines.size();
+                lines.insert(lineEnd+1,fmt::format("{:>8}self.requires(\"{}/{}\")\n"," ",package.first,package.second));
+            }
         });
+
+    std::ofstream out("conanfile.py");
+    if (out.is_open())
+    {
+        std::copy(lines.begin(),lines.end(),std::ostreambuf_iterator<char>(out));
+        out.close();
+    }
+
+    install();
+    auto installLog=Leaf::ProcessHandler::getLog();
+    std::regex findPackageRegex(R"(find_package\(([^)]+)\))");
+    std::regex targetLinkRegex(R"(target_link_libraries\([^)]*\.\.\.\s+([^)]+)\))");
+
+    std::smatch match;
+
+    auto begin = std::sregex_iterator(installLog.begin(), installLog.end(), findPackageRegex);
+    auto end = std::sregex_iterator();
+    std::cout << "find_package entries:\n";
+    for (auto it = begin; it != end; ++it)
+        std::cout << "  " << (*it)[1].str() << '\n';
+
+    if (std::regex_search(installLog, match, targetLinkRegex)) {
+        std::cout << "\ntarget_link_libraries entries:\n";
+        std::string libs = match[1].str();
+
+        std::regex wordRegex(R"(\S+)");
+        auto wb = std::sregex_iterator(libs.begin(), libs.end(), wordRegex);
+        for (auto i = wb; i != end; ++i)
+            std::cout << "  " << (*i).str() << '\n';
+    }
     return 0;
 };
 
@@ -761,6 +855,7 @@ int LeafCommands::compile()
 
 int LeafCommands::run()
 {
+    build();
     namespace fs = std::filesystem;
 #ifdef _WIN322
     std::string extention = ".exe";
