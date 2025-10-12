@@ -298,7 +298,7 @@ int LeafCommands::upload()
 
 int LeafCommands::runTests()
 {
-    ProcessHandler::runExternalProcess({"ctest","--test-dir",".build/debug/tests"},true);
+    ProcessHandler::runExternalProcess({"ctest","--test-dir",".build/debug/tests"},false,true);
     return 0;
 };
 

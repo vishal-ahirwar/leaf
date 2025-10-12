@@ -1,1 +1,32 @@
-ninja: no work to do.
+Test project C:/Users/itsvi/OneDrive/Desktop/leaf/.build/debug/tests
+      Start  1: Logger.log
+ 1/10 Test  #1: Logger.log ...............................   Passed    0.01 sec
+      Start  2: ReplaceStringTest.BasicReplacement
+ 2/10 Test  #2: ReplaceStringTest.BasicReplacement .......   Passed    0.01 sec
+      Start  3: ReplaceStringTest.MultipleReplacements
+ 3/10 Test  #3: ReplaceStringTest.MultipleReplacements ...   Passed    0.01 sec
+      Start  4: ReplaceStringTest.NoReplacement
+ 4/10 Test  #4: ReplaceStringTest.NoReplacement ..........   Passed    0.01 sec
+      Start  5: ReplaceStringTest.EmptyString
+ 5/10 Test  #5: ReplaceStringTest.EmptyString ............   Passed    0.01 sec
+      Start  6: ReplaceStringTest.ReplaceWithEmpty
+ 6/10 Test  #6: ReplaceStringTest.ReplaceWithEmpty .......   Passed    0.01 sec
+      Start  7: RunExternalProcessTest.Ls
+ 7/10 Test  #7: RunExternalProcessTest.Ls ................***Failed    0.01 sec
+      Start  8: RunExternalProcessTest.Echo
+ 8/10 Test  #8: RunExternalProcessTest.Echo ..............***Failed    0.01 sec
+      Start  9: RunExternalProcessTest.Clang
+ 9/10 Test  #9: RunExternalProcessTest.Clang .............   Passed    0.04 sec
+      Start 10: RunExternalProcessTest.InvalidCommand
+10/10 Test #10: RunExternalProcessTest.InvalidCommand ....   Passed    0.01 sec
+
+80% tests passed, 2 tests failed out of 10
+
+Total Test time (real) =   0.14 sec
+
+The following tests FAILED:
+	  7 - RunExternalProcessTest.Ls (Failed)
+	  8 - RunExternalProcessTest.Echo (Failed)
+Errors while running CTest
+Output from these tests are in: C:/Users/itsvi/OneDrive/Desktop/leaf/.build/debug/tests/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.
