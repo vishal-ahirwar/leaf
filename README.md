@@ -2,6 +2,8 @@
 
 A modern, fast, and intuitive package manager for C++ - inspired by Cargo for Rust.
 
+<img width="988" height="547" alt="Screenshot 2025-10-13 051016" src="https://github.com/user-attachments/assets/603bf77f-8158-4163-b238-eb2ea29982f3" />
+
 ## Overview
 
 Leaf aims to bring the simplicity and power of Cargo to the C++ ecosystem. Just like how Cargo revolutionized Rust development, Leaf streamlines C++ project management with:
