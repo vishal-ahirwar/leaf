@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "leafconfig.h"
+#include "logger.h"
 namespace Leaf
 {
 int Commands::exec()
@@ -404,6 +405,7 @@ int LeafCommands::release()
     return 0;
 };
 
+//TODO Fix it/Complete it
 int LeafCommands::addPackage()
 {
     auto escapeRegex=[](const std::string &str) {
@@ -419,11 +421,29 @@ int LeafCommands::addPackage()
         return -1;
     }
     std::vector<std::pair<std::string, std::string>> packagesToInstall{};
-    bool                                             installInReleaseMode{false};
+    bool  installInReleaseMode{false};
+    std::vector<std::string>conanlines{};
+    {
+        std::ifstream in("conanfile.py");
+        if (!in.is_open())
+        {
+            fmt::println("failed to open conanfile.py");
+            return -1;
+        };
+        in>>std::noskipws;
+        std::string line{};
+        while (std::getline(in, line))
+        {
+            conanlines.push_back(line);
+        }
+        in.close();
+
+    }
+
     std::for_each(
         _args.begin() + 2,
         _args.end(),
-        [&installInReleaseMode, &packagesToInstall,&escapeRegex](const std::string& arg)
+        [&installInReleaseMode, &packagesToInstall,&escapeRegex,&conanlines](const std::string& arg)
         {
             if (arg == "-r")
             {
@@ -431,6 +451,7 @@ int LeafCommands::addPackage()
             }
             else
             {
+
                 auto index = arg.find("/");
                 if (index == std::string::npos)
                 {
@@ -441,10 +462,15 @@ int LeafCommands::addPackage()
                 packageName= index!=std::string::npos? arg.substr(0, index):arg;
                 std::string packageVersion{};
                 packageVersion= index!=std::string::npos? arg.substr(++index):"";
+
+                if (std::any_of(conanlines.begin(),conanlines.end(),
+                                [&packageName, &packageVersion](const std::string&str)->bool{return str.find(fmt::format("self.requires(\"{}\")",packageName+"/"+packageVersion))!=std::string::npos;}))
+                {
+                    Leaf::Logger::log(fmt::format("{}Already present in conanfile",packageName).c_str());
+                }
                 std::string escapedName = escapeRegex(packageName);
                 std::string escapedVersion = escapeRegex(packageVersion);
 
-                // Build the pattern safely
                 std::string patternStr;
                 if (packageVersion.empty())
                     patternStr = escapedName + R"(/(\d+(?:\.\d+)+))";  // Match any version
@@ -452,6 +478,7 @@ int LeafCommands::addPackage()
                     patternStr = escapedName + "/" + escapedVersion;
 
                 std::regex pattern(patternStr);
+
                 if (auto code=Leaf::ProcessHandler::runExternalProcess({"conan","search",packageName+(packageVersion.empty()?"":"/"+packageVersion)});code==0)
                 {
                     auto log=Leaf::ProcessHandler::getLog();
@@ -464,14 +491,16 @@ int LeafCommands::addPackage()
                     {
                         auto result=match[0].str();
                         fmt::println("Found {}",result);
-                        auto index=result.find('/');
-                        if (index != std::string::npos)
                         {
-                            packageName=result.substr(0, index);
-                            packageVersion=result.substr(index+1);
+                            auto index=result.find('/');
+                           if (index != std::string::npos)
+                           {
+                               packageName=result.substr(0, index);
+                               packageVersion=result.substr(index+1);
+                           }
+                           packagesToInstall.push_back(
+                           std::pair<std::string, std::string>{packageName, packageVersion});
                         }
-                        packagesToInstall.push_back(
-                        std::pair<std::string, std::string>{packageName, packageVersion});
                     }else
                     {
                         fmt::println("{} not found",packageName);
@@ -482,28 +511,18 @@ int LeafCommands::addPackage()
             }
         });
 
-    std::ifstream in("conanfile.py");
-    if (!in.is_open())
-    {
-        fmt::println("failed to open conanfile.py");
-        return -1;
-    };
-    in>>std::noskipws;
-    std::string lines{};
-    std::copy(std::istreambuf_iterator<char>(in),std::istreambuf_iterator<char>(),std::back_inserter(lines));
-    in.close();
     std::ranges::for_each(
         packagesToInstall,
-        [&lines](const auto& package)
+        [&conanlines](const auto& package)
         {
             fmt::println("Package name : {}, Package version : {} Ready to be installed", package.first, package.second);
-            auto index=lines.find("def requirements(self):");
+            auto index=conanlines.find("def requirements(self):");
             if (index != std::string::npos)
             {
-                auto lineEnd = lines.find('\n', index);
+                auto lineEnd = conanlines.find('\n', index);
                 if (lineEnd == std::string::npos)
-                    lineEnd = lines.size();
-                lines.insert(lineEnd+1,fmt::format("{:>8}self.requires(\"{}/{}\")\n"," ",package.first,package.second));
+                    lineEnd = conanlines.size();
+                conanlines.insert(lineEnd+1,fmt::format("{:>8}self.requires(\"{}/{}\")\n"," ",package.first,package.second));
             }
         });
 
@@ -523,9 +542,41 @@ int LeafCommands::addPackage()
 
     auto begin = std::sregex_iterator(installLog.begin(), installLog.end(), findPackageRegex);
     auto end = std::sregex_iterator();
+
+    std::ifstream cmake("libs/CMakeLists.txt");
+    cmake>>std::noskipws;
+    if (!cmake.is_open())
+    {
+        fmt::println("failed to open libs/CMakeLists.txt");
+        return -1;
+    }
+
+    std::vector<std::string>cmake_lines{};
+    std::string line{};
+    while (std::getline(cmake,line))
+    {
+        cmake_lines.push_back(line);
+    };
+
     std::cout << "find_package entries:\n";
     for (auto it = begin; it != end; ++it)
-        std::cout << "  " << (*it)[1].str() << '\n';
+    {
+        if (!std::any_of(cmake_lines.begin(),cmake_lines.end(),[&it](const std::string&str){return str.find(it->str())!=std::string::npos;}))
+        {
+            cmake_lines.insert(cmake_lines.begin(),it->str());
+        };
+
+    }
+    std::ofstream cmake_out{"libs/CMakeLists.txt"};
+    if (!cmake_out.is_open())
+    {
+        fmt::println("failed to open libs/CMakeLists.txt");
+        return -1;
+    };
+
+    std::copy(cmake_lines.begin(),cmake_lines.end(),std::ostream_iterator<std::string>(cmake_out));
+
+    cmake_out.close();
 
     if (std::regex_search(installLog, match, targetLinkRegex)) {
         std::cout << "\ntarget_link_libraries entries:\n";
