@@ -334,7 +334,7 @@ Generated automatically for perfect LSP integration with any editor.
 
 ## Roadmap
 
-- [ ] **v0.1.0** - Basic project management and dependency resolution
+- [x] **v0.1.0** - Basic project management and dependency resolution
 - [ ] **v0.2.0** - Package registry and publishing
 - [ ] **v0.3.0** - Workspace support and multi-project management
 - [ ] **v0.4.0** - IDE integrations and tooling
