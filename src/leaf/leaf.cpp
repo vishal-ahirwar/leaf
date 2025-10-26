@@ -3,6 +3,6 @@
 
 int main(int argc, char** argv)
 {
-    Leaf::LeafCommands commands(Leaf::betterArgs(argc, argv));
+    LeafCommands::LeafCommands commands(Utils::betterArgs(argc, argv));
     return commands.exec();
 }

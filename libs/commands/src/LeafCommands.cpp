@@ -3,25 +3,25 @@
 //
 
 #include <LeafCommands.h>
-#include <fmt/color.h>
-#include <spinner.h>
-
-#include <iostream>
-#include<filesystem>
-#include <fmt/core.h>
-#include <sago/platform_folders.h>
-#include <utils.h>
-#include <fstream>
-#include <regex>
-#include <leafconfig.h>
 #include <downloder.h>
 #include <easyproc.h>
+#include <fmt/color.h>
+#include <fmt/core.h>
+#include <leafconfig.h>
+#include <sago/platform_folders.h>
+#include <spinner.h>
+#include <utils.h>
 
-namespace Leaf
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <regex>
+
+namespace LeafCommands
 {
 LeafCommands::LeafCommands(std::vector<std::string>&& args)
-    : _commands(std::make_unique<Commands>(
-          Commands(std::move(args),
+    : _commands(std::make_unique<Commands::Commands>(
+          Commands::Commands(std::move(args),
                    []()
                    {
                        fmt::print("🍃 Leaf - A modern C++ project manager.\n");
@@ -128,9 +128,9 @@ int LeafCommands::install()
     {
         conanInstallArgs.emplace_back("build_type=Debug");
     }
-    if (0 != ProcessHandler::runExternalProcess(conanInstallArgs))
+    if (0 != EasyProc::ProcessHandler::runExternalProcess(conanInstallArgs))
     {
-        fmt::println("{}", ProcessHandler::getLog());
+        fmt::println("{}", EasyProc::ProcessHandler::getLog());
     };
     ;
     spin.stop();
@@ -174,7 +174,7 @@ int LeafCommands::create()
         if (!fs::exists(starter_template))
         {
             fs::create_directories(starter_template);
-            downloadGithubDirectory(
+            Downloder::downloadGithubDirectory(
                 "vishal-ahirwar", "leaf", "startertemplate", starter_template.string());
         }
         if (!fs::exists(starter_template))
@@ -200,7 +200,7 @@ int LeafCommands::create()
             std::string newPathString = newPath.string();
             std::ranges::for_each(replacements,
                                   [&newPathString](const auto& rep)
-                                  { replaceString(newPathString, rep.first, rep.second); });
+                                  { Utils::replaceString(newPathString, rep.first, rep.second); });
             if (templateContent.is_directory())
             {
                 if (fs::create_directories(newPathString))
@@ -221,7 +221,7 @@ int LeafCommands::create()
                                   std::back_inserter(content));
                 std::ranges::for_each(replacements,
                                       [&content](const auto& rep)
-                                      { replaceString(content, rep.first, rep.second); });
+                                      { Utils::replaceString(content, rep.first, rep.second); });
                 std::ofstream out(newPathString);
                 out << content;
                 out.close();
@@ -241,9 +241,9 @@ int LeafCommands::publish()
 {
     Spinner spin("Creating Package");
     spin.start();
-    if (0 != ProcessHandler::runExternalProcess({"conan", "create", ".", "-b", "missing"}))
+    if (0 != EasyProc::ProcessHandler::runExternalProcess({"conan", "create", ".", "-b", "missing"}))
     {
-        fmt::println("{}", ProcessHandler::getLog());
+        fmt::println("{}", EasyProc::ProcessHandler::getLog());
     };
 
     return 0;
@@ -257,7 +257,7 @@ int LeafCommands::upload()
 
 int LeafCommands::runTests()
 {
-    ProcessHandler::runExternalProcess({"ctest", "--test-dir", ".build/debug/tests"}, false, true);
+    EasyProc::ProcessHandler::runExternalProcess({"ctest", "--test-dir", ".build/debug/tests"}, false, true);
     return 0;
 };
 
@@ -276,9 +276,9 @@ int LeafCommands::clean()
     {
         if (!fs::exists(".install/Release"))
             install();
-        if (0 != ProcessHandler::runExternalProcess({"cmake", "--preset", "release", "--fresh"}))
+        if (0 != EasyProc::ProcessHandler::runExternalProcess({"cmake", "--preset", "release", "--fresh"}))
         {
-            fmt::println("{}", ProcessHandler::getLog());
+            fmt::println("{}", EasyProc::ProcessHandler::getLog());
         };
         ;
     }
@@ -286,9 +286,9 @@ int LeafCommands::clean()
     {
         if (!fs::exists(".install/Debug"))
             install();
-        if (0 != ProcessHandler::runExternalProcess({"cmake", "--preset", "debug", "--fresh"}))
+        if (0 != EasyProc::ProcessHandler::runExternalProcess({"cmake", "--preset", "debug", "--fresh"}))
         {
-            fmt::println("{}", ProcessHandler::getLog());
+            fmt::println("{}", EasyProc::ProcessHandler::getLog());
         };
         ;
     }
@@ -317,9 +317,9 @@ int LeafCommands::release()
                                                   "tools.cmake.cmaketoolchain:user_presets=",
                                                   "-o",
                                                   "&:build_app=True"};
-        if (0 != ProcessHandler::runExternalProcess(conanInstallArgs))
+        if (0 != EasyProc::ProcessHandler::runExternalProcess(conanInstallArgs))
         {
-            fmt::println("{}", ProcessHandler::getLog());
+            fmt::println("{}", EasyProc::ProcessHandler::getLog());
         };
         ;
     }
@@ -327,31 +327,32 @@ int LeafCommands::release()
     spin.setDisplayMessage("Generating CMake files");
     if (fs::exists("CMakePresets.json"))
     {
-        if (0 != ProcessHandler::runExternalProcess({"cmake", "--preset", "release", "--fresh"}))
+        if (0 != EasyProc::ProcessHandler::runExternalProcess(
+                     {"cmake", "--preset", "release", "--fresh"}))
         {
-            fmt::println("{}", ProcessHandler::getLog());
+            fmt::println("{}", EasyProc::ProcessHandler::getLog());
         };
         ;
     }
     else
     {
-        if (0 != ProcessHandler::runExternalProcess({"cmake",
-                                                     "-S",
-                                                     ".",
-                                                     "-B",
-                                                     ".build/release",
-                                                     "-G",
-                                                     "Ninja",
-                                                     "-DBUILD_TYPE=Release"}))
+        if (0 != EasyProc::ProcessHandler::runExternalProcess({"cmake",
+                                                               "-S",
+                                                               ".",
+                                                               "-B",
+                                                               ".build/release",
+                                                               "-G",
+                                                               "Ninja",
+                                                               "-DBUILD_TYPE=Release"}))
         {
-            fmt::println("{}", ProcessHandler::getLog());
+            fmt::println("{}", EasyProc::ProcessHandler::getLog());
         };
         ;
     }
     spin.setDisplayMessage("Compiling Project");
-    if (0 != ProcessHandler::runExternalProcess({"cmake", "--build", ".build/release"}))
+    if (0 != EasyProc::ProcessHandler::runExternalProcess({"cmake", "--build", ".build/release"}))
     {
-        fmt::println("{}", ProcessHandler::getLog());
+        fmt::println("{}", EasyProc::ProcessHandler::getLog());
     };
     spin.stop();
     return 0;
@@ -374,19 +375,19 @@ int LeafCommands::addPackage()
             continue; // Skip for now
         }
 
-        auto        index          = arg.find('/');
-        std::string package_name   = (index != std::string::npos) ? arg.substr(0, index) : arg;
+        auto        index           = arg.find('/');
+        std::string package_name    = (index != std::string::npos) ? arg.substr(0, index) : arg;
         std::string package_version = (index != std::string::npos) ? arg.substr(index + 1) : "";
 
-        if (ProcessHandler::runExternalProcess({"conan", "search", arg}) != 0)
+        if (EasyProc::ProcessHandler::runExternalProcess({"conan", "search", arg}) != 0)
         {
             fmt::println("error: Failed to search for package '{}'", arg);
             continue;
         }
 
-        std::string log     = ProcessHandler::getLog();
-        std::regex  pattern(package_name + R"(\/(\d+(?:\.\d+)*))");
-        std::smatch match;
+        std::string              log = EasyProc::ProcessHandler::getLog();
+        std::regex               pattern(package_name + R"(\/(\d+(?:\.\d+)*))");
+        std::smatch              match;
         std::vector<std::string> versions;
         for (std::sregex_iterator it(log.begin(), log.end(), pattern), end; it != end; ++it)
         {
@@ -464,8 +465,7 @@ int LeafCommands::addPackage()
         for (const auto& pkg : packages_to_install)
         {
             it = conan_lines.insert(
-                it + 1,
-                fmt::format("        self.requires(\"{}/{}\")", pkg.first, pkg.second));
+                it + 1, fmt::format("        self.requires(\"{}/{}\")", pkg.first, pkg.second));
         }
     }
     else
@@ -494,24 +494,30 @@ int LeafCommands::addPackage()
         return -1;
     }
 
-    auto       install_log = ProcessHandler::getLog();
+    auto       install_log = EasyProc::ProcessHandler::getLog();
     std::regex find_package_regex(R"(find_package\(([^)]+)\))");
     std::regex target_link_regex(R"(target_link_libraries\(([^)]+)\))");
 
     std::vector<std::string> find_packages;
     std::vector<std::string> link_libraries;
 
-    for (std::sregex_iterator it(install_log.begin(), install_log.end(), find_package_regex), end; it != end; ++it)
+    for (std::sregex_iterator it(install_log.begin(), install_log.end(), find_package_regex), end;
+         it != end;
+         ++it)
     {
         find_packages.push_back(it->str());
     }
 
-    for (std::sregex_iterator it(install_log.begin(), install_log.end(), target_link_regex), end; it != end; ++it)
+    for (std::sregex_iterator it(install_log.begin(), install_log.end(), target_link_regex), end;
+         it != end;
+         ++it)
     {
         link_libraries.push_back(it->str());
     }
 
-    auto update_cmake_lists = [&](const std::string& path, const std::vector<std::string>& packages, const std::vector<std::string>& libs)
+    auto update_cmake_lists = [&](const std::string&              path,
+                                  const std::vector<std::string>& packages,
+                                  const std::vector<std::string>& libs)
     {
         std::vector<std::string> lines;
         std::ifstream            cmake_in(path);
@@ -596,7 +602,7 @@ int LeafCommands::addApp()
     }
     namespace fs = std::filesystem;
     std::map<std::string, std::string> replacements{
-            {"%APPNAME%", project_name}, {"%WORKSPACE%", fs::current_path().filename().string()}};
+        {"%APPNAME%", project_name}, {"%WORKSPACE%", fs::current_path().filename().string()}};
     auto home = sago::getConfigHome();
 
     if (fs::exists(home))
@@ -605,7 +611,7 @@ int LeafCommands::addApp()
         if (!fs::exists(starter_template))
         {
             fs::create_directories(starter_template);
-            downloadGithubDirectory(
+            Downloder::downloadGithubDirectory(
                 "vishal-ahirwar", "leaf", "startertemplate", starter_template.string());
         }
         if (!fs::exists(starter_template))
@@ -633,7 +639,7 @@ int LeafCommands::addApp()
             std::string newPathString = newPath.string();
             std::ranges::for_each(replacements,
                                   [&newPathString](const auto& rep)
-                                  { replaceString(newPathString, rep.first, rep.second); });
+                                  { Utils::replaceString(newPathString, rep.first, rep.second); });
             if (templateContent.is_directory())
             {
                 if (fs::create_directories(newPathString))
@@ -654,7 +660,7 @@ int LeafCommands::addApp()
                                   std::back_inserter(content));
                 std::ranges::for_each(replacements,
                                       [&content](const auto& rep)
-                                      { replaceString(content, rep.first, rep.second); });
+                                      { Utils::replaceString(content, rep.first, rep.second); });
                 std::ofstream out(newPathString);
                 out << content;
                 out.close();
@@ -691,7 +697,7 @@ int LeafCommands::addLib()
     }
     namespace fs = std::filesystem;
     std::map<std::string, std::string> replacements{
-            {"%LIBNAME%", project_name}, {"%WORKSPACE%", fs::current_path().filename().string()}};
+        {"%LIBNAME%", project_name}, {"%WORKSPACE%", fs::current_path().filename().string()}};
     auto home = sago::getConfigHome();
 
     if (fs::exists(home))
@@ -700,7 +706,7 @@ int LeafCommands::addLib()
         if (!fs::exists(starter_template))
         {
             fs::create_directories(starter_template);
-            downloadGithubDirectory(
+            Downloder::downloadGithubDirectory(
                 "vishal-ahirwar", "leaf", "startertemplate", starter_template.string());
         }
         if (!fs::exists(starter_template))
@@ -729,7 +735,7 @@ int LeafCommands::addLib()
             std::string newPathString = newPath.string();
             std::ranges::for_each(replacements,
                                   [&newPathString](const auto& rep)
-                                  { replaceString(newPathString, rep.first, rep.second); });
+                                  { Utils::replaceString(newPathString, rep.first, rep.second); });
             if (templateContent.is_directory())
             {
                 if (fs::create_directories(newPathString))
@@ -750,7 +756,7 @@ int LeafCommands::addLib()
                                   std::back_inserter(content));
                 std::ranges::for_each(replacements,
                                       [&content](const auto& rep)
-                                      { replaceString(content, rep.first, rep.second); });
+                                      {Utils:: replaceString(content, rep.first, rep.second); });
                 std::ofstream out(newPathString);
                 out << content;
                 out.close();
@@ -783,11 +789,11 @@ int LeafCommands::doctor()
     std::ranges::for_each(tools,
                           [&allToolsInstalled](const auto& tool)
                           {
-                              allToolsInstalled =
-                                  ProcessHandler::runExternalProcess({tool, "--version"}) == 0;
+                              allToolsInstalled = EasyProc::ProcessHandler::runExternalProcess(
+                                                      {tool, "--version"}) == 0;
                               if (!allToolsInstalled)
                               {
-                                  fmt::println("{}", ProcessHandler::getLog());
+                                  fmt::println("{}", EasyProc::ProcessHandler::getLog());
                               }
                           });
     spin.stop();
@@ -815,16 +821,17 @@ int LeafCommands::build()
         if (!fs::exists(".build/debug"))
         {
             spin.setDisplayMessage("Generating cmake files");
-            if (0 != ProcessHandler::runExternalProcess({"cmake", "--preset", "debug", "--fresh"}))
+            if (0 != EasyProc::ProcessHandler::runExternalProcess(
+                         {"cmake", "--preset", "debug", "--fresh"}))
             {
-                fmt::println("{}", ProcessHandler::getLog());
+                fmt::println("{}", EasyProc::ProcessHandler::getLog());
             };
             ;
         }
         spin.setDisplayMessage("Compiling");
-        if (0 != ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"}))
+        if (0 != EasyProc::ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"}))
         {
-            fmt::println("{}", ProcessHandler::getLog());
+            fmt::println("{}", EasyProc::ProcessHandler::getLog());
         };
         spin.stop();
     }
@@ -840,23 +847,23 @@ int LeafCommands::build()
         if (!fs::exists(".build/debug"))
         {
             spin.setDisplayMessage("Generating cmake files");
-            if (0 != ProcessHandler::runExternalProcess({"cmake",
-                                                         "-S",
-                                                         ".",
-                                                         "-B",
-                                                         ".build/debug",
-                                                         "-G",
-                                                         "Ninja",
-                                                         "-DBUILD_TYPE=Debug"}))
+            if (0 != EasyProc::ProcessHandler::runExternalProcess({"cmake",
+                                                                   "-S",
+                                                                   ".",
+                                                                   "-B",
+                                                                   ".build/debug",
+                                                                   "-G",
+                                                                   "Ninja",
+                                                                   "-DBUILD_TYPE=Debug"}))
             {
-                fmt::println("{}", ProcessHandler::getLog());
+                fmt::println("{}", EasyProc::ProcessHandler::getLog());
             };
             ;
         }
         spin.setDisplayMessage("Compiling");
-        if (0 != ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"}))
+        if (0 != EasyProc::ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"}))
         {
-            fmt::println("{}", ProcessHandler::getLog());
+            fmt::println("{}", EasyProc::ProcessHandler::getLog());
         };
         spin.stop();
     }
@@ -870,18 +877,19 @@ int LeafCommands::compile()
     if (std::ranges::find(_commands->getArgs(), "-r") != _commands->getArgs().end())
     {
         spin.setDisplayMessage("Compiling in release mode");
-        if (0 != ProcessHandler::runExternalProcess({"cmake", "--build", ".build/release"}))
+        if (0 !=
+            EasyProc::ProcessHandler::runExternalProcess({"cmake", "--build", ".build/release"}))
         {
-            fmt::println("{}", ProcessHandler::getLog());
+            fmt::println("{}", EasyProc::ProcessHandler::getLog());
         };
         ;
     }
     else
     {
         spin.setDisplayMessage("Compiling in debug mode");
-        if (ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"}) != 0)
+        if (EasyProc::ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"}) != 0)
         {
-            fmt::println("{}", ProcessHandler::getLog());
+            fmt::println("{}", EasyProc::ProcessHandler::getLog());
         };
     }
     spin.stop();
@@ -904,7 +912,7 @@ int LeafCommands::run()
         {
             appName = fs::current_path().filename().string();
         }
-        ProcessHandler::runExternalProcess(
+        EasyProc::ProcessHandler::runExternalProcess(
             {fmt::format("./.build/release/src/{}/{}{}", appName, appName, extention)},
             false,
             true);
@@ -916,7 +924,7 @@ int LeafCommands::run()
         {
             appName = fs::current_path().filename().string();
         }
-        ProcessHandler::runExternalProcess(
+        EasyProc::ProcessHandler::runExternalProcess(
             {fmt::format("./.build/debug/src/{}/{}{}", appName, appName, extention)}, false, true);
     }
 
@@ -964,20 +972,20 @@ int LeafCommands::setupToolChain()
     // TODO install mingw by default on windows, clang on linux and mac and use clang and mingw and
     // generate toolchainfile to use mingw(installing libs (through conan)) and clang(to build
     // project)
-    Leaf::download("mingw", "mingw");
+    Downloder::download("mingw", "mingw");
     // TODO only on windows install msvc if user wants and genenrate toochain file to use msvc(to
     // install libs through conan) with clang(to build project)
-    Leaf::download("msvc", "msvc");
+    Downloder::download("msvc", "msvc");
     // TODO install conan binary on windows,linux,mac
-    Leaf::download("conan", "conan");
+    Downloder::download("conan", "conan");
     // TODO install ninja binary from github for windows,linux,mac
-    Leaf::download("ninja", "ninja");
+    Downloder::download("ninja", "ninja");
     // TODO install cmake binary from github for windows,linux,mac
-    Leaf::download("cmake", "cmake");
+    Downloder::download("cmake", "cmake");
     // TODO generate profiles for android,web and to use clang compiler on windows,linux,mac
-    Leaf::generateProfiles();
+    Utils::generateProfiles();
     // TODO ask user to add leaf config into system path
-    Leaf::printLeafConfigPath();
+    Utils::printLeafConfigPath();
     return 0;
 }
 
@@ -985,4 +993,4 @@ int LeafCommands::exec()
 {
     return _commands->exec();
 }
-}
+} // namespace LeafCommands

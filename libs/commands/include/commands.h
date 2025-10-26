@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace Leaf
+namespace Commands
 {
 
 class Commands
@@ -29,4 +29,4 @@ class Commands
     const std::vector<std::string>& getArgs() const;
     int                             exec();
 };
-};// namespace Leaf
+};// namespace Commands

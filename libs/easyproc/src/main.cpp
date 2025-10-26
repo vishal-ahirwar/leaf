@@ -13,7 +13,7 @@
 
 #include "../include/easyproc.h"
 
-namespace Leaf
+namespace EasyProc
 {
 
 static int fail(std::error_code ec)
@@ -99,4 +99,4 @@ const std::string& ProcessHandler::getLog()
 {
     return ProcessHandler::log;
 };
-} // namespace Leaf
+} // namespace EasyProc

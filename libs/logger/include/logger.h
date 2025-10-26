@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace Leaf
+namespace Logger
 {
 class Logger
 {

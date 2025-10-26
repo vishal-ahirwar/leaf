@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
-namespace Leaf
+namespace EasyProc
 {
 
 class ProcessHandler
@@ -15,4 +15,4 @@ class ProcessHandler
     static const std::string& getLog();
 };
 
-} // namespace Leaf
+} // namespace EasyProc

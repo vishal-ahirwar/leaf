@@ -11,7 +11,7 @@
 
 #include "../include/downloder.h"
 
-namespace Leaf
+namespace Downloder
 {
 
 std::string urlEncode(const std::string& value)

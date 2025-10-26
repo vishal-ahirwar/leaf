@@ -6,3 +6,4 @@ __pycache__
 .install
 
 build.log
+__cmake_systeminformation/CMakeFiles/4.1.1/CompilerIdC/Debug/CompilerIdC.tlog/link-cvtres.read.1.tlog

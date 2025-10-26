@@ -7,7 +7,7 @@
 #include <ranges>
 #include <string>
 #include <vector>
-namespace Leaf
+namespace Utils
 {
 
 bool replaceString(std::string& str, const std::string& from, const std::string& to)

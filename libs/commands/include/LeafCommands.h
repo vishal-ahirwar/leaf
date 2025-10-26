@@ -9,12 +9,13 @@
 #include <vector>
 #include<commands.h>
 
-namespace Leaf
+namespace LeafCommands
 {
 
 class LeafCommands
 {
-    std::unique_ptr<Commands> _commands{};
+
+    std::unique_ptr<Commands::Commands> _commands{};
     std::vector<std::string>  _args{};
 
 public:
