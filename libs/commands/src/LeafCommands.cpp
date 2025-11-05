@@ -104,7 +104,9 @@ LeafCommands::LeafCommands(std::vector<std::string>&& args)
                                 "[cmake,ninja,conan,clang(mingw/msvc)]",
                                 [&]() -> int { return this->setupToolChain(); });
 
-
+    _commands->registerCommands("update", "Check for leaf update and download latest version leaf from github", [this]()->int{
+        return this->startLeafUpdater();
+    });
 };
 
 int LeafCommands::install()
@@ -1000,4 +1002,10 @@ int LeafCommands::exec()
 {
     return _commands->exec();
 }
+
+int LeafCommands::startLeafUpdater()
+{
+    fmt::println("Note : LeafUpdater is not implemented yet!");
+    return 0;
+};
 } // namespace LeafCommands

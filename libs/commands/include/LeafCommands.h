@@ -65,6 +65,8 @@ private:
     int version() const;
 
     int setupToolChain();
+
+    int startLeafUpdater();
 };
 }
 

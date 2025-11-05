@@ -1,5 +1,5 @@
 - Env setup before installing 3rd-party libs through conan2 everytime user run leaf install
-
+- Fix how commands are being managed !
 - doctor
 
 - auto cmake generation
@@ -12,4 +12,3 @@
   cmake/platforms/webconfig.cmake, cmake/platforms/androidconfig.cmake fetch these from leaf's gihub repo only if needed
 
 - ....
-
