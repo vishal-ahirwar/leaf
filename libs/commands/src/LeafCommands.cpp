@@ -5,6 +5,7 @@
 #include <LeafCommands.h>
 #include <downloder.h>
 #include <easyproc.h>
+#include <fmt/base.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
 #include <leafconfig.h>
@@ -22,11 +23,11 @@ namespace LeafCommands
 LeafCommands::LeafCommands(std::vector<std::string>&& args)
     : _commands(std::make_unique<Commands::Commands>(
           Commands::Commands(std::move(args),
-                   []()
-                   {
-                       fmt::print("🍃 Leaf - A modern C++ project manager.\n");
-                       fmt::print("Run 'leaf help' for a list of commands.\n");
-                   }))),
+                             []()
+                             {
+                                 fmt::print("🍃 Leaf - A modern C++ project manager.\n");
+                                 fmt::print("Run 'leaf help' for a list of commands.\n");
+                             }))),
       _args(args)
 {
 
@@ -102,6 +103,8 @@ LeafCommands::LeafCommands(std::vector<std::string>&& args)
                                 "Setup Clang Toolchain for C/C++ Development included "
                                 "[cmake,ninja,conan,clang(mingw/msvc)]",
                                 [&]() -> int { return this->setupToolChain(); });
+
+
 };
 
 int LeafCommands::install()
@@ -241,7 +244,8 @@ int LeafCommands::publish()
 {
     Spinner spin("Creating Package");
     spin.start();
-    if (0 != EasyProc::ProcessHandler::runExternalProcess({"conan", "create", ".", "-b", "missing"}))
+    if (0 !=
+        EasyProc::ProcessHandler::runExternalProcess({"conan", "create", ".", "-b", "missing"}))
     {
         fmt::println("{}", EasyProc::ProcessHandler::getLog());
     };
@@ -257,7 +261,8 @@ int LeafCommands::upload()
 
 int LeafCommands::runTests()
 {
-    EasyProc::ProcessHandler::runExternalProcess({"ctest", "--test-dir", ".build/debug/tests"}, false, true);
+    EasyProc::ProcessHandler::runExternalProcess(
+        {"ctest", "--test-dir", ".build/debug/tests"}, false, true);
     return 0;
 };
 
@@ -276,7 +281,8 @@ int LeafCommands::clean()
     {
         if (!fs::exists(".install/Release"))
             install();
-        if (0 != EasyProc::ProcessHandler::runExternalProcess({"cmake", "--preset", "release", "--fresh"}))
+        if (0 != EasyProc::ProcessHandler::runExternalProcess(
+                     {"cmake", "--preset", "release", "--fresh"}))
         {
             fmt::println("{}", EasyProc::ProcessHandler::getLog());
         };
@@ -286,7 +292,8 @@ int LeafCommands::clean()
     {
         if (!fs::exists(".install/Debug"))
             install();
-        if (0 != EasyProc::ProcessHandler::runExternalProcess({"cmake", "--preset", "debug", "--fresh"}))
+        if (0 !=
+            EasyProc::ProcessHandler::runExternalProcess({"cmake", "--preset", "debug", "--fresh"}))
         {
             fmt::println("{}", EasyProc::ProcessHandler::getLog());
         };
@@ -756,7 +763,7 @@ int LeafCommands::addLib()
                                   std::back_inserter(content));
                 std::ranges::for_each(replacements,
                                       [&content](const auto& rep)
-                                      {Utils:: replaceString(content, rep.first, rep.second); });
+                                      { Utils::replaceString(content, rep.first, rep.second); });
                 std::ofstream out(newPathString);
                 out << content;
                 out.close();
