@@ -922,7 +922,7 @@ int LeafCommands::run()
             appName = fs::current_path().filename().string();
         }
         EasyProc::ProcessHandler::runExternalProcess(
-            {fmt::format("./.build/release/src/{}/{}{}", appName, appName, extention)},
+            {fmt::format("./.build/release/apps/{}/{}{}", appName, appName, extention)},
             false,
             true);
     }
@@ -934,7 +934,7 @@ int LeafCommands::run()
             appName = fs::current_path().filename().string();
         }
         EasyProc::ProcessHandler::runExternalProcess(
-            {fmt::format("./.build/debug/src/{}/{}{}", appName, appName, extention)}, false, true);
+            {fmt::format("./.build/debug/apps/{}/{}{}", appName, appName, extention)}, false, true);
     }
 
     return 0;
