@@ -41,14 +41,14 @@ LeafCommands::LeafCommands(std::vector<std::string>&& args)
                                 [this]() { return this->help(); });
     _commands->registerCommands(
         "version", "Display leaf current version", [this]() { return this->version(); });
-    _commands->registerCommands(
-        "clean",
-        "Deletes all build files and temporary artifacts from the project directory.",
-        [this]() { return this->clean(); });
-    _commands->registerCommands(
-        "format",
-        "Automatically formats all C++ source code files according to a consistent style.",
-        [this]() { return this->format(); });
+    _commands->registerCommands("clean",
+                                "Deletes all build files and temporary artifacts "
+                                "from the project directory.",
+                                [this]() { return this->clean(); });
+    _commands->registerCommands("format",
+                                "Automatically formats all C++ source code files "
+                                "according to a consistent style.",
+                                [this]() { return this->format(); });
     _commands->registerCommands(
         "install",
         "Fetches and installs all the dependencies listed in the conanfile.py.",
@@ -64,10 +64,10 @@ LeafCommands::LeafCommands(std::vector<std::string>&& args)
         "run",
         "Compiles and executes the main application target of your project.",
         [this]() { return this->run(); });
-    _commands->registerCommands(
-        "publish",
-        "Formally uploads the final, release-ready version of a package to a remote.",
-        [this]() { return this->publish(); });
+    _commands->registerCommands("publish",
+                                "Formally uploads the final, release-ready "
+                                "version of a package to a remote.",
+                                [this]() { return this->publish(); });
     _commands->registerCommands(
         "upload",
         "Uploads a packaged library to a specified remote Conan repository.",
@@ -76,10 +76,10 @@ LeafCommands::LeafCommands(std::vector<std::string>&& args)
         "doctor",
         "Checks your system to ensure all required tools (Clang, CMake,Conan) ",
         [this]() { return this->doctor(); });
-    _commands->registerCommands(
-        "release",
-        "Fetches and installs in release mode all the dependencies listed in the conanfile.py.",
-        [this]() { return this->release(); });
+    _commands->registerCommands("release",
+                                "Fetches and installs in release mode all the "
+                                "dependencies listed in the conanfile.py.",
+                                [this]() { return this->release(); });
     _commands->registerCommands(
         "init",
         "Initializes a new Leaf project structure within an existing directory.",
@@ -104,9 +104,10 @@ LeafCommands::LeafCommands(std::vector<std::string>&& args)
                                 "[cmake,ninja,conan,clang(mingw/msvc)]",
                                 [&]() -> int { return this->setupToolChain(); });
 
-    _commands->registerCommands("update", "Check for leaf update and download latest version leaf from github", [this]()->int{
-        return this->startLeafUpdater();
-    });
+    _commands->registerCommands(
+        "update",
+        "Check for leaf update and download latest version leaf from github",
+        [this]() -> int { return this->startLeafUpdater(); });
 };
 
 int LeafCommands::install()
@@ -155,7 +156,8 @@ int LeafCommands::create()
     std::getline(std::cin, project_name);
     if (project_name.find(" ") != std::string::npos || project_name.empty())
     {
-        fmt::println("Project name can't be empty and can't have whitespaces in their name!");
+        fmt::println("Project name can't be empty and can't have whitespaces in "
+                     "their name!");
         return 0;
     }
     fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::light_green), "lib name? ");
@@ -270,7 +272,6 @@ int LeafCommands::runTests()
 
 int LeafCommands::format()
 {
-
     return 0;
 };
 
@@ -978,12 +979,12 @@ int LeafCommands::version() const
 }
 int LeafCommands::setupToolChain()
 {
-    // TODO install mingw by default on windows, clang on linux and mac and use clang and mingw and
-    // generate toolchainfile to use mingw(installing libs (through conan)) and clang(to build
-    // project)
+    // TODO install mingw by default on windows, clang on linux and mac and use
+    // clang and mingw and generate toolchainfile to use mingw(installing libs
+    // (through conan)) and clang(to build project)
     Downloder::download("mingw", "mingw");
-    // TODO only on windows install msvc if user wants and genenrate toochain file to use msvc(to
-    // install libs through conan) with clang(to build project)
+    // TODO only on windows install msvc if user wants and genenrate toochain file
+    // to use msvc(to install libs through conan) with clang(to build project)
     Downloder::download("msvc", "msvc");
     // TODO install conan binary on windows,linux,mac
     Downloder::download("conan", "conan");
@@ -991,7 +992,8 @@ int LeafCommands::setupToolChain()
     Downloder::download("ninja", "ninja");
     // TODO install cmake binary from github for windows,linux,mac
     Downloder::download("cmake", "cmake");
-    // TODO generate profiles for android,web and to use clang compiler on windows,linux,mac
+    // TODO generate profiles for android,web and to use clang compiler on
+    // windows,linux,mac
     Utils::generateProfiles();
     // TODO ask user to add leaf config into system path
     Utils::printLeafConfigPath();
@@ -1006,6 +1008,9 @@ int LeafCommands::exec()
 int LeafCommands::startLeafUpdater()
 {
     fmt::println("Note : LeafUpdater is not implemented yet!");
+
+    EasyProc::ProcessHandler::runExternalProcess({"updater"}, false, true);
+    
     return 0;
 };
 } // namespace LeafCommands
