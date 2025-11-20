@@ -25,7 +25,6 @@ class LeafConan(ConanFile):
         self.requires("nlohmann_json/3.12.0")
         if self.options.build_app:  # Only for the app
             self.requires("gtest/1.17.0")
-            self.requires("spinner/0.1.0")
             self.requires("platformfolders/4.3.0")
         else: # Only for the libs
             pass
