@@ -16,13 +16,13 @@ Leaf aims to bring the simplicity and power of Cargo to the C++ ecosystem. Just 
 
 ## Features
 
-- 🚀 **Fast project setup** - `leaf new my-project` and you're ready to code
-- 📦 **Dependency management** - Add libraries with `leaf add boost fmt spdlog`
-- 🔧 **Build integration** - Automatic CMake generation and build orchestration
-- 🌐 **Registry support** - Access to popular C++ libraries
-- ⚡ **Parallel builds** - Multi-threaded compilation for faster builds
-- 🧹 **Clean management** - Easy cleanup of build artifacts
-- 📊 **Detailed logging** - Beautiful, colored output with progress indicators
+-  **Fast project setup** - `leaf new my-project` and you're ready to code
+-  **Dependency management** - Add libraries with `leaf add boost fmt spdlog`
+-  **Build integration** - Automatic CMake generation and build orchestration
+-  **Registry support** - Access to popular C++ libraries
+-  **Parallel builds** - Multi-threaded compilation for faster builds
+-  **Clean management** - Easy cleanup of build artifacts
+-  **Detailed logging** - Beautiful, colored output with progress indicators
 
 ## Installation
 
@@ -63,39 +63,9 @@ leaf new hello-world
 cd hello-world
 ```
 
-This creates a project structure like:
-```
-leaf/
-├── conanfile.py          # Root conanfile
-├── CMakeLists.txt        # Root CMakeLists to orchestrate the entire build.
-│
-├── apps/                 # Contains all final executable applications.
-│   └── leaf/             # An example application named 'leaf'.
-│       ├── src/
-│       │   └── main.cpp
-│       └── CMakeLists.txt  # Build script for the 'leaf' application.
-│
-├── libs/                 # Contains all shared/static libraries.
-│   ├── downloader/       # A library for downloading files.
-│   │   ├── src/
-│   │   └── CMakeLists.txt
-│   ├── generator/        # A library for generating content.
-│   │   ├── src/
-│   │   └── CMakeLists.txt
-│   └── utils/            # A general-purpose utility library.
-│       ├── src/
-│       └── CMakeLists.txt
-│
-├── .vscode/              # VS Code editor settings (optional).
-├── build/                # Build output directory (auto-generated).
-├── .install/             # Conan dependencies (auto-generated).
-├── cmake/                # Custom CMake modules (optional).
-└── .gitignore            # Git ignore rules.
-```
-
 ### Add dependencies
 ```bash
-leaf add fmt boost spdlog
+leaf addpkg fmt boost spdlog
 ```
 
 ### Build your project
@@ -198,40 +168,7 @@ class MyAwesomeProjectConan(ConanFile):
 
 ## Project Structure
 
-Leaf follows a conventional project layout:
-
-```
-my-project/
-├── conanfile.py           # Conan package definition
-├── CMakeLists.txt         # CMake build configuration  
-├── .leafconfig            # Leaf-specific settings
-├── README.md
-├── .gitignore
-├── my-project/            # Root project
-│   └── src/
-│       └── main.cpp      # Application entry point
-├── sub-project1/         # Sub-project (library/executable)
-│   ├── src/
-│   │   └── source.cpp
-│   └── include/
-│       └── sub-project1.h
-├── sub-project2/         # Another sub-project
-│   ├── src/
-│   │   └── source.cpp
-│   └── include/
-│       └── sub-project2.h
-├── tests/                # Unit tests
-│   └── test_main.cpp
-├── examples/             # Example code
-│   └── basic_usage.cpp
-├── docs/                 # Documentation
-├── install/              # Conan dependencies (auto-generated)
-├── config/               # Project configuration files
-└── build/                # Build output (auto-generated)
-    ├── debug/
-    └── release/
-```
-
+Leaf follows a conventional project layout
 ## Advanced Usage
 
 ### Custom Build Scripts
