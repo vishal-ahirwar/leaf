@@ -579,7 +579,7 @@ int LeafCommands::addPackage()
         }
     }
 
-    for (const auto& entry : std::filesystem::directory_iterator("src"))
+    for (const auto& entry : std::filesystem::directory_iterator("apps"))
     {
         if (entry.is_directory())
         {
@@ -644,7 +644,7 @@ int LeafCommands::addApp()
             {
                 continue;
             }
-            newPath                   = (fs::current_path() / "src" / oldPath.substr(index));
+            newPath                   = (fs::current_path() / "apps" / oldPath.substr(index));
             std::string name          = newPath.filename().string();
             std::string newPathString = newPath.string();
             std::for_each(replacements.begin(),replacements.end(),
@@ -683,7 +683,7 @@ int LeafCommands::addApp()
         return -1;
     }
 
-    std::ofstream cmake("src/CMakeLists.txt", std::ios::app);
+    std::ofstream cmake("apps/CMakeLists.txt", std::ios::app);
     if (cmake.is_open())
     {
         cmake << "add_subdirectory(" << project_name << ")\n";
