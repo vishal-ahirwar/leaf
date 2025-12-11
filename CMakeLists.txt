@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 3.6...3.31)
 
 include(cmake/clang.config.cmake)
-project(leaf VERSION 0.0.8 LANGUAGES CXX C)
+project(leaf VERSION 0.0.9 LANGUAGES CXX C)
 include(cmake/config.cmake)
 
 #@add_find_package Warning: Do not remove this line
