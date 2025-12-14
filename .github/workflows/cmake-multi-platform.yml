@@ -1,17 +1,19 @@
 name: Build and Release leaf
-
 on:
   release:
-    types: [published]   # runs when a release is published
-  # Optional: allow manual run from Actions tab
-  # workflow_dispatch:
-
+    types: [published]
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-13]
+        include:
+          - os: windows-latest
+            artifact_name: windows
+          - os: ubuntu-latest
+            artifact_name: linux
+          - os: macos-latest
+            artifact_name: macos
       
     steps:
       - name: Set up Python
@@ -21,15 +23,13 @@ jobs:
           
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Install conan and build using cmake
         run: |
           pip install conan
           conan profile detect --force
-          conan install . -of .install -b missing -o "&:build_app=True"
+          conan install . -of .install -b missing -o "&:build_app=True" -s "&:compiler=clang" -s "&:compiler.version=20" -s compiler.cppstd=20 -s build_type=Release -c tools.cmake.cmaketoolchain:generator=Ninja
           cmake --preset release
           cmake --build .build/release
-
       - name: Prepare and zip artifacts
         run: |
           mkdir -p out
@@ -37,63 +37,55 @@ jobs:
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             cp .build/release/apps/leaf/leaf.exe out/
             cp .build/release/apps/updater/updater.exe out/
-            (cd out && 7z a ../leaf-windows-latest.zip *)
+            (cd out && 7z a ../leaf-${{ matrix.artifact_name }}.zip *)
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             cp .build/release/apps/leaf/leaf out/
             cp .build/release/apps/updater/updater out/
-            (cd out && zip -r ../leaf-macos-13.zip .)
+            (cd out && zip -r ../leaf-${{ matrix.artifact_name }}.zip .)
           else
             cp .build/release/apps/leaf/leaf out/
             cp .build/release/apps/updater/updater out/
-            (cd out && zip -r ../leaf-ubuntu-latest.zip .)
+            (cd out && zip -r ../leaf-${{ matrix.artifact_name }}.zip .)
           fi
         shell: bash
-
       - name: Upload zip artifact
         uses: actions/upload-artifact@v4
         with:
-          name: leaf-${{ matrix.os }}
-          path: leaf-*.zip
-
+          name: leaf-${{ matrix.artifact_name }}
+          path: leaf-${{ matrix.artifact_name }}.zip
   release:
     needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
     steps:
       - name: Download Windows zip
         uses: actions/download-artifact@v4
         with:
-          name: leaf-windows-latest
+          name: leaf-windows
           path: artifacts/
-
       - name: Download Linux zip
         uses: actions/download-artifact@v4
         with:
-          name: leaf-ubuntu-latest
+          name: leaf-linux
           path: artifacts/
-
       - name: Download macOS zip
         uses: actions/download-artifact@v4
         with:
-          name: leaf-macos-13
+          name: leaf-macos
           path: artifacts/
-
       - name: Attach assets to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          # use the tag of the release that triggered this workflow
           tag_name: ${{ github.event.release.tag_name }}
           name: ${{ github.event.release.name }}
           body: |
             🚀 Automated build from release ${{ github.event.release.tag_name }}
-
             - **Release:** `${{ github.event.release.name }}`
             - **Description:** _${{ github.event.release.body }}_
           files: |
-            artifacts/leaf-windows-latest.zip
-            artifacts/leaf-ubuntu-latest.zip
-            artifacts/leaf-macos-13.zip
+            artifacts/leaf-windows.zip
+            artifacts/leaf-linux.zip
+            artifacts/leaf-macos.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

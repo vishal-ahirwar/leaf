@@ -205,7 +205,7 @@ int LeafCommands::create()
             }
             std::string name          = newPath.filename().string();
             std::string newPathString = newPath.string();
-            std::ranges::for_each(replacements,
+            std::for_each(replacements.begin(),replacements.end(),
                                   [&newPathString](const auto& rep)
                                   { Utils::replaceString(newPathString, rep.first, rep.second); });
             if (templateContent.is_directory())
@@ -223,10 +223,10 @@ int LeafCommands::create()
                 std::string   content{};
                 in >> std::noskipws;
 
-                std::ranges::copy(std::istream_iterator<char>(in),
-                                  std::istream_iterator<char>{},
+                std::ranges::copy(std::istreambuf_iterator<char>(in),
+                                  std::istreambuf_iterator<char>{},
                                   std::back_inserter(content));
-                std::ranges::for_each(replacements,
+                std::for_each(replacements.begin(),replacements.end(),
                                       [&content](const auto& rep)
                                       { Utils::replaceString(content, rep.first, rep.second); });
                 std::ofstream out(newPathString);
@@ -579,7 +579,7 @@ int LeafCommands::addPackage()
         }
     }
 
-    for (const auto& entry : std::filesystem::directory_iterator("src"))
+    for (const auto& entry : std::filesystem::directory_iterator("apps"))
     {
         if (entry.is_directory())
         {
@@ -644,10 +644,10 @@ int LeafCommands::addApp()
             {
                 continue;
             }
-            newPath                   = (fs::current_path() / "src" / oldPath.substr(index));
+            newPath                   = (fs::current_path() / "apps" / oldPath.substr(index));
             std::string name          = newPath.filename().string();
             std::string newPathString = newPath.string();
-            std::ranges::for_each(replacements,
+            std::for_each(replacements.begin(),replacements.end(),
                                   [&newPathString](const auto& rep)
                                   { Utils::replaceString(newPathString, rep.first, rep.second); });
             if (templateContent.is_directory())
@@ -665,10 +665,10 @@ int LeafCommands::addApp()
                 std::string   content{};
                 in >> std::noskipws;
 
-                std::ranges::copy(std::istream_iterator<char>(in),
-                                  std::istream_iterator<char>{},
+                std::ranges::copy(std::istreambuf_iterator<char>(in),
+                                  std::istreambuf_iterator<char>{},
                                   std::back_inserter(content));
-                std::ranges::for_each(replacements,
+                std::for_each(replacements.begin(),replacements.end(),
                                       [&content](const auto& rep)
                                       { Utils::replaceString(content, rep.first, rep.second); });
                 std::ofstream out(newPathString);
@@ -683,7 +683,7 @@ int LeafCommands::addApp()
         return -1;
     }
 
-    std::ofstream cmake("src/CMakeLists.txt", std::ios::app);
+    std::ofstream cmake("apps/CMakeLists.txt", std::ios::app);
     if (cmake.is_open())
     {
         cmake << "add_subdirectory(" << project_name << ")\n";
@@ -743,7 +743,7 @@ int LeafCommands::addLib()
             newPath                   = (fs::current_path() / "libs" / oldPath.substr(index));
             std::string name          = newPath.filename().string();
             std::string newPathString = newPath.string();
-            std::ranges::for_each(replacements,
+            std::for_each(replacements.begin(),replacements.end(),
                                   [&newPathString](const auto& rep)
                                   { Utils::replaceString(newPathString, rep.first, rep.second); });
             if (templateContent.is_directory())
@@ -761,10 +761,10 @@ int LeafCommands::addLib()
                 std::string   content{};
                 in >> std::noskipws;
 
-                std::ranges::copy(std::istream_iterator<char>(in),
-                                  std::istream_iterator<char>{},
+                std::ranges::copy(std::istreambuf_iterator<char>(in),
+                                  std::istreambuf_iterator<char>{},
                                   std::back_inserter(content));
-                std::ranges::for_each(replacements,
+                std::for_each(replacements.begin(),replacements.end(),
                                       [&content](const auto& rep)
                                       { Utils::replaceString(content, rep.first, rep.second); });
                 std::ofstream out(newPathString);
@@ -796,7 +796,7 @@ int LeafCommands::doctor()
 
     bool allToolsInstalled{false};
 
-    std::ranges::for_each(tools,
+    std::for_each(tools.begin(),tools.end(),
                           [&allToolsInstalled](const auto& tool)
                           {
                               allToolsInstalled = EasyProc::ProcessHandler::runExternalProcess(
@@ -955,7 +955,7 @@ int LeafCommands::help()
         _commands->getCommands().begin(), _commands->getCommands().end()};
     fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green),
                "Available Commands\n");
-    std::ranges::for_each(sorted_commands,
+    std::for_each(sorted_commands.begin(),sorted_commands.end(),
                           [](const auto& command)
                           {
                               fmt::print("{:<8} - ", command.first);
