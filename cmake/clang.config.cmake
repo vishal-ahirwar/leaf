@@ -13,3 +13,5 @@ else()
     set(CMAKE_C_COMPILER clang)
     set(CMAKE_CXX_COMPILER clang++)
 endif()
+
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)

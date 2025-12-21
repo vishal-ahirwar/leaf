@@ -1,5 +1,5 @@
 
-add_library(commands 
+add_library(commands
         "src/Commands.cpp")
 target_include_directories(commands PUBLIC include)
 
