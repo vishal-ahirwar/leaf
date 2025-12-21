@@ -39,9 +39,7 @@ leaf build  # Uses existing Leaf installation to build itself
 ```bash
 git clone https://github.com/vishal-ahirwar/leaf.git
 cd leaf
-conan install . -of=.install
-cmake -B .build
-cmake --build .build
+python3 build.py
 ```
 
 ### Prerequisites
