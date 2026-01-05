@@ -2,10 +2,9 @@
 // Created by itsvi on 10/22/2025.
 //
 
-#include <Commands.h>
+#include <commands.h>
 #include <downloder.h>
 #include <easyproc.h>
-#include <fmt/base.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
 #include <leafconfig.h>

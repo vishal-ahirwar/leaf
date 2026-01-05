@@ -1,3 +1,4 @@
+find_package(fmt)
 add_library(generator src/main.cpp) # Add your Source Files here
 #@add_target_link_libraries Warning: Do not remove this line
 target_link_libraries(generator PRIVATE fmt::fmt)

@@ -1,4 +1,4 @@
-#include <Commands.h>
+#include <commands.h>
 #include <utils.h>
 
 int main(int argc, char** argv)
