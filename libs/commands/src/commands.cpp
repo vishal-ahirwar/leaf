@@ -1089,25 +1089,24 @@ int LeafCommands::generateProfile()
         return 1;
     };
 
-    std::vector<std::string>cmake_lines{};
-    while (cmake.good())
+    std::vector<std::string>cmake_lines{};    std::string line;
+    while (std::getline(cmake, line))
     {
-        std::string line;
-        std::getline(cmake, line);
         cmake_lines.push_back(line);
     };
-
+    cmake.close();
     std::transform(cmake_lines.begin(),cmake_lines.end(),cmake_lines.begin(),[](std::string line)
     {
         std::transform(line.begin(),line.end(),line.begin(),[](char c){return std::tolower(c);});
         return line;
     });
 
-
     std::for_each(cmake_lines.begin(),cmake_lines.end(),[](const std::string& line)
     {
         Logger::Logger::log(line);
     });
+
+    return 0;
 };
 
 } // namespace LeafCommands
