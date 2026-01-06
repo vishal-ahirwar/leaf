@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
+#include <logger.h>
 
 #include <string>
 
+#include "../libs/commands/include/commands.h"
 #include "easyproc.h"
 #include "utils.h"
-#include <logger.h>
 using namespace std::string_literals;
 
 
@@ -83,4 +84,39 @@ TEST(RunExternalProcessTest, InvalidCommand)
     std::vector<std::string> command   = {"invalid_command"};
     int                      exit_code = EasyProc::ProcessHandler:: runExternalProcess(command);
     ASSERT_NE(exit_code, 0);
+}
+
+
+//--------------Profile Gen-----------
+
+TEST(CMakeToConanProfile,Generation)
+{
+    class HighCommand:public LeafCommands::LeafCommands
+    {
+    public:
+        HighCommand() : LeafCommands(std::vector<std::string>())
+        {
+        }
+        int run(){return LeafCommands::generateProfile();};
+    };
+
+
+    HighCommand highCommand;
+    ASSERT_EQ(highCommand.run(),0);
+}
+
+TEST(Docs,Generation)
+{
+    class HighCommand:public LeafCommands::LeafCommands
+    {
+    public:
+        HighCommand() : LeafCommands(std::vector<std::string>())
+        {
+        }
+        int run(){return LeafCommands::generateDocs();};
+    };
+
+
+    HighCommand highCommand;
+    ASSERT_EQ(highCommand.run(),0);
 }

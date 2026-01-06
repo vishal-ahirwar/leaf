@@ -1021,7 +1021,7 @@ int LeafCommands::help()
 int LeafCommands::generateDocs()
 {
     // TODO
-    return 0;
+    return -1;
 }
 
 int LeafCommands::version() const

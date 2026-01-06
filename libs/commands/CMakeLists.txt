@@ -1,9 +1,10 @@
 find_package(fmt)
 find_package(cpr)
 find_package(nlohmann_json)
-add_library(downloader src/main.cpp) # Add your Source Files here
+find_package(platform_folders REQUIRED)
+add_library(commands  src/commands.cpp) # Add your Source Files here
 #@add_target_link_libraries Warning: Do not remove this line
-target_link_libraries(downloader PRIVATE fmt::fmt cpr::cpr nlohmann_json::nlohmann_json)
-target_include_directories(downloader PUBLIC include)
-install(TARGETS downloader)
-install(DIRECTORY include/ DESTINATION include/downloader)
+target_link_libraries(commands PRIVATE utils downloader logger generator easyproc fmt::fmt sago::platform_folders spinner)
+target_include_directories(commands PUBLIC include)
+install(TARGETS commands)
+install(DIRECTORY include/ DESTINATION include/commands)

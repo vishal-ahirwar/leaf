@@ -1,2 +1,2 @@
 CompileFlags:
-  CompilationDatabase: .build/debug # <-- Or build/Release, or whatever you use most often
+  CompilationDatabase: .build/release # <-- Or build/Release, or whatever you use most often

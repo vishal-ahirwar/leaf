@@ -1,6 +1,6 @@
 enable_testing()
 add_executable(tests main.cpp)
 find_package(GTest)
-target_link_libraries(tests gtest::gtest utils easyproc logger)
+target_link_libraries(tests gtest::gtest utils easyproc logger commands)
 include(GoogleTest)
 gtest_discover_tests(tests)

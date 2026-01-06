@@ -50,7 +50,7 @@ public:
     LeafCommands(std::vector<std::string>&& args);
     int exec();
 
-private:
+protected:
 
     int generateProfile();
 
