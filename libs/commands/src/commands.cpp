@@ -2,7 +2,8 @@
 // Created by itsvi on 10/22/2025.
 //
 
-#include <commands.h>
+#include "../include/commands.h"
+
 #include <downloder.h>
 #include <easyproc.h>
 #include <fmt/color.h>
@@ -16,6 +17,8 @@
 #include <fstream>
 #include <iostream>
 #include <regex>
+
+#include "logger.h"
 
 namespace Commands
 {
@@ -1078,6 +1081,33 @@ int LeafCommands::generateProfile()
     // features
     //that's all:)
 
+
+    std::ifstream cmake{"CMakeLists.txt"};
+    if (!cmake.is_open())
+    {
+        Logger::Logger::log("Could not open CMakeLists.txt");
+        return 1;
+    };
+
+    std::vector<std::string>cmake_lines{};
+    while (cmake.good())
+    {
+        std::string line;
+        std::getline(cmake, line);
+        cmake_lines.push_back(line);
+    };
+
+    std::transform(cmake_lines.begin(),cmake_lines.end(),cmake_lines.begin(),[](std::string line)
+    {
+        std::transform(line.begin(),line.end(),line.begin(),[](char c){return std::tolower(c);});
+        return line;
+    });
+
+
+    std::for_each(cmake_lines.begin(),cmake_lines.end(),[](const std::string& line)
+    {
+        Logger::Logger::log(line);
+    });
 };
 
 } // namespace LeafCommands
