@@ -41,4 +41,18 @@ int generateProfiles()
 {
     return 0;
 }
+
+std::string getOSProfilePath()
+{
+    std::string os_profile;
+#ifdef _WIN32
+    os_profile = "profiles/windows_profile";
+#elif defined(__APPLE__)
+    os_profile = "profiles/macos_profile";
+#else
+    os_profile = "profiles/linux_profile";
+#endif
+    return os_profile;
+}
+
 } // namespace Utils

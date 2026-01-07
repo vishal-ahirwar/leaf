@@ -3,7 +3,7 @@
 #include <fmt/core.h>
 #include<fmt/color.h>
 
-namespace Logger
+namespace Leaf
 {
 void Logger::log(const std::string& name)
 {

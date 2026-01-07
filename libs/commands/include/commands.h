@@ -10,10 +10,10 @@
 #include<unordered_map>
 #include <functional>
 #include<map>
-namespace Commands
+namespace Leaf
 {
 
-class Commands
+class CommandRegistry
 {
 
     std::unordered_map<std::string, std::pair<std::string, std::function<int()>>> _commands{};
@@ -23,8 +23,8 @@ class Commands
     std::function<void(void)> _default{};
 
   public:
-    Commands() = delete;
-    Commands(std::vector<std::string>&& args, std::function<void(void)> default_func)
+    CommandRegistry() = delete;
+    CommandRegistry(std::vector<std::string>&& args, std::function<void(void)> default_func)
         : _args(args), _default(default_func) {};
     const std::unordered_map<std::string, std::pair<std::string, std::function<int()>>>&
                                     getCommands() const;
@@ -34,20 +34,16 @@ class Commands
     const std::vector<std::string>& getArgs() const;
     int                             exec();
 };
-}; // namespace Commands
 
-namespace LeafCommands
+class CLI
 {
 
-class LeafCommands
-{
-
-    std::unique_ptr<Commands::Commands> _commands{};
+    std::unique_ptr<CommandRegistry> _commands{};
     std::vector<std::string>  _args{};
 
 public:
-    LeafCommands() = delete;
-    LeafCommands(std::vector<std::string>&& args);
+    CLI() = delete;
+    CLI(std::vector<std::string>&& args);
     int exec();
 
 protected:
@@ -98,7 +94,8 @@ protected:
 
     int startLeafUpdater();
 };
-}
+} // namespace Leaf
+
 
 
 #endif // LEAF_LEAFCOMMANDS_H

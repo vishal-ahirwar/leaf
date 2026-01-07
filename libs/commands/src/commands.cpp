@@ -2,9 +2,9 @@
 // Created by itsvi on 10/22/2025.
 //
 
-#include "../include/commands.h"
+#include "commands.h"
 
-#include <downloder.h>
+#include <downloader.h>
 #include <easyproc.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
@@ -13,6 +13,7 @@
 #include <spinner.h>
 #include <utils.h>
 
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -20,9 +21,9 @@
 
 #include "logger.h"
 
-namespace Commands
+namespace Leaf
 {
-int Commands::exec()
+int CommandRegistry::exec()
 {
     if (_args.size() < 2)
     {
@@ -51,7 +52,7 @@ int Commands::exec()
     return 0;
 }
 
-void Commands::registerCommands(std::string&&                   command,
+void CommandRegistry::registerCommands(std::string&&                   command,
                                 std::string&&                   description,
                                 const std::function<int(void)>& callable)
 {
@@ -59,22 +60,22 @@ void Commands::registerCommands(std::string&&                   command,
 };
 
 const std::unordered_map<std::string, std::pair<std::string, std::function<int()>>>&
-Commands::getCommands() const
+CommandRegistry::getCommands() const
 {
     return _commands;
 }
 
-const std::vector<std::string>& Commands::getArgs() const
+const std::vector<std::string>& CommandRegistry::getArgs() const
 {
     return _args;
 }
-} // namespace Commands
+} // namespace Leaf
 
-namespace LeafCommands
+namespace Leaf
 {
-LeafCommands::LeafCommands(std::vector<std::string>&& args)
-    : _commands(std::make_unique<Commands::Commands>(
-          Commands::Commands(std::move(args),
+CLI::CLI(std::vector<std::string>&& args)
+    : _commands(std::make_unique<CommandRegistry>(
+          CommandRegistry(std::move(args),
                              []()
                              {
                                  fmt::print("🍃 Leaf - A modern C++ project manager.\n");
@@ -162,10 +163,17 @@ LeafCommands::LeafCommands(std::vector<std::string>&& args)
         [this]() -> int { return this->startLeafUpdater(); });
 };
 
-int LeafCommands::install()
+int CLI::install()
 {
     Spinner spin("Installing dependencies");
     spin.start();
+
+    // Ensure profile exists
+    if (!std::filesystem::exists(Utils::getOSProfilePath()))
+    {
+        generateProfile();
+    }
+
     std::vector<std::string> conanInstallArgs{"conan",
                                               "install",
                                               ".",
@@ -173,6 +181,8 @@ int LeafCommands::install()
                                               ".install",
                                               "-b",
                                               "missing",
+                                              "-pr",
+                                              Utils::getOSProfilePath(),
                                               "-c",
                                               "tools.cmake.cmaketoolchain:user_presets=",
                                               "-o",
@@ -195,7 +205,7 @@ int LeafCommands::install()
     return 0;
 };
 
-int LeafCommands::create()
+int CLI::create()
 {
     namespace fs = std::filesystem;
 
@@ -233,7 +243,7 @@ int LeafCommands::create()
         if (!fs::exists(starter_template))
         {
             fs::create_directories(starter_template);
-            Downloder::downloadGithubDirectory(
+            Downloader::downloadGithubDirectory(
                 "vishal-ahirwar", "leaf", "startertemplate", starter_template.string());
         }
         if (!fs::exists(starter_template))
@@ -296,7 +306,7 @@ int LeafCommands::create()
     return 0;
 };
 
-int LeafCommands::publish()
+int CLI::publish()
 {
     Spinner spin("Creating Package");
     spin.start();
@@ -309,25 +319,94 @@ int LeafCommands::publish()
     return 0;
 };
 
-int LeafCommands::upload()
+int CLI::upload()
 {
-    // TODO
+    // Basic wrapper around conan upload
+    // Usage: leaf upload <package_pattern> -r <remote>
+    if (_args.size() < 3)
+    {
+        fmt::println("Usage: leaf upload <package_pattern> -r <remote>");
+        return 1;
+    }
+
+    // construct args for conan upload
+    // leaf upload pattern ... -> conan upload pattern ...
+    std::vector<std::string> conanArgs = {"conan", "upload"};
+    for (size_t i = 2; i < _args.size(); ++i)
+    {
+        conanArgs.push_back(_args[i]);
+    }
+
+    if (EasyProc::ProcessHandler::runExternalProcess(conanArgs) != 0)
+    {
+        fmt::println("Upload failed.");
+        fmt::println("{}", EasyProc::ProcessHandler::getLog());
+        return 1;
+    }
+    
+    fmt::println("Upload successful.");
     return 0;
 };
 
-int LeafCommands::runTests()
+int CLI::runTests()
 {
     EasyProc::ProcessHandler::runExternalProcess(
         {"ctest", "--test-dir", ".build/debug/tests"}, false, true);
     return 0;
 };
 
-int LeafCommands::format()
+int CLI::format()
 {
+    Spinner spin("Formatting code");
+    spin.start();
+    // Use git ls-files or find to get all cpp/h files?
+    // Or just recurse current directory.
+    // simpler: use easyproc to run clang-format on known directories (apps, libs, tests, src, include)
+    
+    std::vector<std::string> dirs_to_format = {"apps", "libs", "tests", "src", "include"};
+    std::vector<std::string> files_to_format;
+
+    for (const auto& dir : dirs_to_format)
+    {
+        if (std::filesystem::exists(dir))
+        {
+            for (const auto& entry : std::filesystem::recursive_directory_iterator(dir))
+            {
+                if (entry.is_regular_file())
+                {
+                    std::string ext = entry.path().extension().string();
+                    if (ext == ".cpp" || ext == ".h" || ext == ".hpp" || ext == ".c" || ext == ".cc")
+                    {
+                        files_to_format.push_back(entry.path().string());
+                    }
+                }
+            }
+        }
+    }
+
+    if (files_to_format.empty())
+    {
+        spin.stop();
+        fmt::println("No source files found to format.");
+        return 0;
+    }
+
+    // Run clang-format in batches or one by one?
+    // One by one is safer for command line length limits.
+    // Or just pass -i and the file list if not too long.
+    // Let's do one by one for simplicity and robustness.
+    
+    for (const auto& file : files_to_format)
+    {
+        EasyProc::ProcessHandler::runExternalProcess({"clang-format", "-i", "-style=file", file}, false, false);
+    }
+
+    spin.stop();
+    fmt::println("Formatted {} files.", files_to_format.size());
     return 0;
 };
 
-int LeafCommands::clean()
+int CLI::clean()
 {
     namespace fs = std::filesystem;
     Spinner spin("Running Clean build");
@@ -358,7 +437,7 @@ int LeafCommands::clean()
     return 0;
 };
 
-int LeafCommands::release()
+int CLI::release()
 {
     namespace fs = std::filesystem;
     Spinner spin;
@@ -366,6 +445,13 @@ int LeafCommands::release()
     {
         spin.setDisplayMessage("Installing deps in release mode");
         spin.start();
+
+        // Ensure profile exists
+        if (!std::filesystem::exists(Utils::getOSProfilePath()))
+        {
+            generateProfile();
+        }
+
         std::vector<std::string> conanInstallArgs{"conan",
                                                   "install",
                                                   ".",
@@ -375,6 +461,8 @@ int LeafCommands::release()
                                                   "missing",
                                                   "-s",
                                                   "build_type=Release",
+                                                  "-pr",
+                                                  Utils::getOSProfilePath(),
                                                   "-c",
                                                   "tools.cmake.cmaketoolchain:user_presets=",
                                                   "-o",
@@ -420,7 +508,7 @@ int LeafCommands::release()
     return 0;
 };
 
-int LeafCommands::addPackage()
+int CLI::addPackage()
 {
     if (_args.size() <= 2)
     {
@@ -642,13 +730,126 @@ int LeafCommands::addPackage()
     return 0;
 };
 
-int LeafCommands::removePackage()
+int CLI::removePackage()
 {
-    // TODO
+    if (_args.size() <= 2)
+    {
+        fmt::println("error: At least one package needs to be provided!");
+        return -1;
+    }
+
+    std::vector<std::string> packages_to_remove;
+    for (size_t i = 2; i < _args.size(); ++i)
+    {
+        const auto& arg = _args[i];
+        if (arg == "-r") continue;
+        packages_to_remove.push_back(arg);
+    }
+
+    if (packages_to_remove.empty()) return 0;
+
+    // 1. Remove from conanfile.py
+    std::vector<std::string> lines;
+    std::ifstream in("conanfile.py");
+    if (!in.is_open())
+    {
+        fmt::println("error: failed to open conanfile.py");
+        return -1;
+    }
+
+    std::string line;
+    while (std::getline(in, line))
+    {
+        bool remove = false;
+        for (const auto& pkg : packages_to_remove)
+        {
+            // Simple check: looking for pkg name in self.requires
+            // e.g. self.requires("fmt/10.0.0")
+            // pkg could be "fmt" or "fmt/10.0.0"
+            // We'll check if the line contains the package name and "self.requires"
+            if (line.find("self.requires") != std::string::npos &&
+                line.find("\"" + pkg) != std::string::npos)
+            {
+                remove = true;
+                break;
+            }
+        }
+        if (!remove)
+        {
+            lines.push_back(line);
+        }
+    }
+    in.close();
+
+    std::ofstream out("conanfile.py");
+    if (!out.is_open())
+    {
+        fmt::println("error: failed to write to conanfile.py");
+        return -1;
+    }
+    for (const auto& l : lines)
+    {
+        out << l << "\n";
+    }
+    out.close();
+
+    // 2. Run install to update dependencies
+    if (install() != 0) return -1;
+
+    // 3. Update CMakeLists.txt (Best effort removal)
+    auto update_cmake_lists = [&](const std::string& path)
+    {
+        if (!std::filesystem::exists(path)) return;
+        std::vector<std::string> cmake_lines;
+        std::ifstream cmake_in(path);
+        if (cmake_in.is_open())
+        {
+            std::string l;
+            while (std::getline(cmake_in, l))
+            {
+                bool remove = false;
+                // Remove find_package(PKG...)
+                if (l.find("find_package") != std::string::npos)
+                {
+                    for (const auto& pkg : packages_to_remove)
+                    {
+                        // pkg might be "fmt/10.2.1", we just want "fmt" usually
+                        std::string clean_pkg = pkg.substr(0, pkg.find('/'));
+                        if (l.find(clean_pkg) != std::string::npos)
+                        {
+                            remove = true;
+                            break;
+                        }
+                    }
+                }
+                // We won't try to remove from target_link_libraries automatically
+                // because it's hard to know which target to remove from and the formatting
+                // might be complex. Users might need to do this manually.
+                // But `addPackage` adds it to target_link_libraries...
+                // Let's at least warn or try simple removal if on same line.
+                
+                if (!remove)
+                {
+                    cmake_lines.push_back(l);
+                }
+            }
+            cmake_in.close();
+
+            std::ofstream cmake_out(path);
+            for (const auto& l : cmake_lines) cmake_out << l << "\n";
+        }
+    };
+
+    update_cmake_lists("libs/CMakeLists.txt");
+    update_cmake_lists("src/CMakeLists.txt");
+    // Also recurse into apps/ and libs/ subdirs if we want to be thorough
+    // but for now this is a basic implementation.
+    
+    fmt::println("Packages removed from conanfile.py. Please check CMakeLists.txt for any leftover linking.");
     return 0;
 };
 
-int LeafCommands::addApp()
+int CLI::addApp()
 {
     // TODO
     // TODO
@@ -673,7 +874,7 @@ int LeafCommands::addApp()
         if (!fs::exists(starter_template))
         {
             fs::create_directories(starter_template);
-            Downloder::downloadGithubDirectory(
+            Downloader::downloadGithubDirectory(
                 "vishal-ahirwar", "leaf", "startertemplate", starter_template.string());
         }
         if (!fs::exists(starter_template))
@@ -744,7 +945,7 @@ int LeafCommands::addApp()
     return 0;
 };
 
-int LeafCommands::addLib()
+int CLI::addLib()
 {
     // TODO
     std::string project_name{};
@@ -768,7 +969,7 @@ int LeafCommands::addLib()
         if (!fs::exists(starter_template))
         {
             fs::create_directories(starter_template);
-            Downloder::downloadGithubDirectory(
+            Downloader::downloadGithubDirectory(
                 "vishal-ahirwar", "leaf", "startertemplate", starter_template.string());
         }
         if (!fs::exists(starter_template))
@@ -840,7 +1041,7 @@ int LeafCommands::addLib()
     return 0;
 };
 
-int LeafCommands::doctor()
+int CLI::doctor()
 {
     Spinner spin("Checking required Toolchain");
     spin.start();
@@ -867,7 +1068,7 @@ int LeafCommands::doctor()
     return 0;
 };
 
-int LeafCommands::build()
+int CLI::build()
 {
 
     namespace fs = std::filesystem;
@@ -904,8 +1105,29 @@ int LeafCommands::build()
         spin.start();
         if (!fs::exists(".install") && (fs::exists("conanfile.txt") || fs::exists("conanfile.py")))
         {
+            spin.stop(); // Stop spinner to run install (which has its own spinner)
             install();
+            spin.start(); // Restart spinner
+            
+            // Check if presets were generated
+            if (fs::exists("CMakePresets.json"))
+            {
+                spin.setDisplayMessage("Generating cmake files (using presets)");
+                if (0 != EasyProc::ProcessHandler::runExternalProcess(
+                             {"cmake", "--preset", "debug", "--fresh"}))
+                {
+                    fmt::println("{}", EasyProc::ProcessHandler::getLog());
+                }
+                spin.setDisplayMessage("Compiling");
+                if (0 != EasyProc::ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"}))
+                {
+                    fmt::println("{}", EasyProc::ProcessHandler::getLog());
+                }
+                spin.stop();
+                return 0;
+            }
         };
+        
         if (!fs::exists(".build/debug"))
         {
             spin.setDisplayMessage("Generating cmake files");
@@ -932,7 +1154,7 @@ int LeafCommands::build()
     return 0;
 }
 
-int LeafCommands::compile()
+int CLI::compile()
 {
     Spinner spin("Compiling");
     spin.start();
@@ -958,11 +1180,11 @@ int LeafCommands::compile()
     return 0;
 }
 
-int LeafCommands::run()
+int CLI::run()
 {
     build();
     namespace fs = std::filesystem;
-#ifdef _WIN322
+#ifdef _WIN32
     std::string extention = ".exe";
 #else
     std::string extention{};
@@ -993,12 +1215,110 @@ int LeafCommands::run()
     return 0;
 }
 
-int LeafCommands::init()
+int CLI::init()
 {
+    namespace fs = std::filesystem;
+    std::string project_name = fs::current_path().filename().string();
+    std::string lib_name = project_name + "lib";
+
+    // Allow overriding name via args? For now, simpler is better.
+    
+    if (_args.size() > 2)
+    {
+        project_name = _args[2];
+        lib_name = project_name + "lib";
+    }
+
+    fmt::println("Initializing project '{}' in current directory.", project_name);
+
+    std::map<std::string, std::string> replacements{{"%APPNAME%", project_name},
+                                                    {"%LIBNAME%", lib_name},
+                                                    {"startertemplate", project_name},
+                                                    {"%WORKSPACE%", project_name}};
+    auto home = sago::getConfigHome();
+    if (fs::exists(home))
+    {
+        auto starter_template = fs::path(home) / ".leaf" / "startertemplate";
+        if (!fs::exists(starter_template))
+        {
+            fs::create_directories(starter_template);
+            Downloader::downloadGithubDirectory(
+                "vishal-ahirwar", "leaf", "startertemplate", starter_template.string());
+        }
+        if (!fs::exists(starter_template))
+        {
+            fmt::println("Could not find or download start template code!");
+            return 1;
+        };
+
+        for (const auto& templateContent : fs::recursive_directory_iterator(starter_template))
+        {
+            auto     oldPath = templateContent.path().string();
+            fs::path newPath{};
+            auto     index = oldPath.find("startertemplate");
+            if (index != std::string::npos)
+            {
+                // Determine new path relative to current directory
+                // startertemplate/foo/bar -> ./foo/bar
+                // We need to skip "startertemplate/"
+                std::string relPath = oldPath.substr(index + std::string("startertemplate").length());
+                // Remove leading separator if any
+                if (!relPath.empty() && (relPath[0] == '/' || relPath[0] == '\\')) {
+                    relPath = relPath.substr(1);
+                }
+                
+                if (relPath.empty()) continue; // Skip root folder itself
+
+                newPath = fs::current_path() / relPath;
+            }
+            
+            std::string name          = newPath.filename().string();
+            std::string newPathString = newPath.string();
+            std::for_each(replacements.begin(),replacements.end(),
+                                  [&newPathString](const auto& rep)
+                                  { Utils::replaceString(newPathString, rep.first, rep.second); });
+            
+            if (fs::exists(newPathString)) {
+                fmt::println("Skipping existing file/directory: {}", newPathString);
+                continue;
+            }
+
+            if (templateContent.is_directory())
+            {
+                if (fs::create_directories(newPathString))
+                {
+                    fmt::print("Directory created :{}\n", newPathString);
+                }
+            }
+            else
+            {
+                fmt::print("File created:{}\n", newPathString);
+
+                std::ifstream in(oldPath);
+                std::string   content{};
+                in >> std::noskipws;
+
+                std::ranges::copy(std::istreambuf_iterator<char>(in),
+                                  std::istreambuf_iterator<char>{},
+                                  std::back_inserter(content));
+                std::for_each(replacements.begin(),replacements.end(),
+                                      [&content](const auto& rep)
+                                      { Utils::replaceString(content, rep.first, rep.second); });
+                std::ofstream out(newPathString);
+                out << content;
+                out.close();
+            }
+        }
+    }
+    else
+    {
+        fmt::print("{} does not exist!\n", home);
+        return -1;
+    }
     return 0;
 }
 
-int LeafCommands::help()
+int CLI::help()
 {
     fmt::print("\n🍃 Leaf - v{} by {}\n", Project::VERSION_STRING, Project::COMPANY_NAME);
     fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green),
@@ -1018,46 +1338,68 @@ int LeafCommands::help()
     fmt::println("");
     return 0;
 }
-int LeafCommands::generateDocs()
+int CLI::generateDocs()
 {
-    // TODO
-    return -1;
+    if (!std::filesystem::exists("Doxyfile"))
+    {
+        fmt::println("No Doxyfile found. Generating a default one...");
+        if (EasyProc::ProcessHandler::runExternalProcess({"doxygen", "-g"}) != 0)
+        {
+            fmt::println("Failed to generate Doxyfile. Is doxygen installed?");
+            return 1;
+        }
+        fmt::println("Doxyfile generated. Please customize it and run 'leaf docs' again.");
+        return 0;
+    }
+
+    Spinner spin("Generating documentation");
+    spin.start();
+    if (EasyProc::ProcessHandler::runExternalProcess({"doxygen", "Doxyfile"}) != 0)
+    {
+        spin.stop();
+        fmt::println("Failed to generate documentation.");
+        fmt::println("{}", EasyProc::ProcessHandler::getLog());
+        return 1;
+    }
+    spin.stop();
+    fmt::println("Documentation generated in 'html/latex' directory (check Doxyfile for output path).");
+    return 0;
 }
 
-int LeafCommands::version() const
+int CLI::version() const
 {
     fmt::println("🍃 {} v{}", Project::PROJECT_NAME, Project::VERSION_STRING);
     return 0;
 }
-int LeafCommands::setupToolChain()
+int CLI::setupToolChain()
 {
     // TODO install mingw by default on windows, clang on linux and mac and use
     // clang and mingw and generate toolchainfile to use mingw(installing libs
     // (through conan)) and clang(to build project)
-    Downloder::download("mingw", "mingw");
+    Downloader::download("mingw", "mingw");
     // TODO only on windows install msvc if user wants and genenrate toochain file
     // to use msvc(to install libs through conan) with clang(to build project)
-    Downloder::download("msvc", "msvc");
+    Downloader::download("msvc", "msvc");
     // TODO install conan binary on windows,linux,mac
-    Downloder::download("conan", "conan");
+    Downloader::download("conan", "conan");
     // TODO install ninja binary from github for windows,linux,mac
-    Downloder::download("ninja", "ninja");
+    Downloader::download("ninja", "ninja");
     // TODO install cmake binary from github for windows,linux,mac
-    Downloder::download("cmake", "cmake");
+    Downloader::download("cmake", "cmake");
     // TODO generate profiles for android,web and to use clang compiler on
     // windows,linux,mac
-    Utils::generateProfiles();
+    this->generateProfile();
     // TODO ask user to add leaf config into system path
     Utils::printLeafConfigPath();
     return 0;
 }
 
-int LeafCommands::exec()
+int CLI::exec()
 {
     return _commands->exec();
 }
 
-int LeafCommands::startLeafUpdater()
+int CLI::startLeafUpdater()
 {
     fmt::println("Note : LeafUpdater is not implemented yet!");
 
@@ -1066,47 +1408,122 @@ int LeafCommands::startLeafUpdater()
     return 0;
 };
 
-int LeafCommands::generateProfile()
+int CLI::generateProfile()
 {
-    // Read Root CMakeLists.txt to find the compiler version, build type and then in projectRootDirectory/profiles/ generate conan profile
-    // first run conan profile --detect --force then modify the profile according to compiler version and build type and save it as
-    // osname_profile in projectRootDirectory/profiles/ with modified settings like
-    // compiler.version,compiler.libcxx,build_type and compiler.cppstd and other settings if
-    // required
-    // because leaf enforces clang compiler on all platforms  but it gives user
-    // choice to use other compilers too so we need to modify the profile
-    // so byefault leaf will generate profile with  &:clang compiler, where & means for current project only use gcc or msvc to install dependencies through conan
-    // but use clang to build the project
-    // on windows leaf will download clang but user must download msvc to use leaf package manager
-    // features
-    //that's all:)
+    Leaf::Logger::log("Generating profile...");
 
+    std::string cpp_std    = "20";
+    std::string compiler   = "clang";
+    std::string build_type = "Release";
 
     std::ifstream cmake{"CMakeLists.txt"};
-    if (!cmake.is_open())
+    if (cmake.is_open())
     {
-        Logger::Logger::log("Could not open CMakeLists.txt");
+        std::string line;
+        std::regex  std_regex(R"(set\s*\(\s*CMAKE_CXX_STANDARD\s+["']?(\d+)["']?\s*\))",
+                             std::regex_constants::icase);
+        std::regex  comp_regex(R"(set\s*\(\s*CMAKE_CXX_COMPILER\s+["']?([^\s\)]+)["']?\s*\))",
+                              std::regex_constants::icase);
+        std::regex  build_regex(R"(set\s*\(\s*CMAKE_BUILD_TYPE\s+["']?([^\s\)]+)["']?\s*\))",
+                               std::regex_constants::icase);
+
+        while (std::getline(cmake, line))
+        {
+            std::smatch match;
+            if (std::regex_search(line, match, std_regex))
+            {
+                cpp_std = match[1].str();
+            }
+            if (std::regex_search(line, match, comp_regex))
+            {
+                compiler = match[1].str();
+            }
+            if (std::regex_search(line, match, build_regex))
+            {
+                build_type = match[1].str();
+            }
+        }
+        cmake.close();
+    }
+
+    if (EasyProc::ProcessHandler::runExternalProcess({"conan", "profile", "detect", "--force"},
+                                                     true,
+                                                     true) != 0)
+    {
+        Leaf::Logger::log("Conan profile detect failed. Ensure Conan is installed.");
         return 1;
-    };
+    }
 
-    std::vector<std::string>cmake_lines{};    std::string line;
-    while (std::getline(cmake, line))
+    if (EasyProc::ProcessHandler::runExternalProcess({"conan", "profile", "path", "default"},
+                                                     true,
+                                                     false) != 0)
     {
-        cmake_lines.push_back(line);
-    };
-    cmake.close();
-    std::transform(cmake_lines.begin(),cmake_lines.end(),cmake_lines.begin(),[](std::string line)
-    {
-        std::transform(line.begin(),line.end(),line.begin(),[](char c){return std::tolower(c);});
-        return line;
-    });
+        Leaf::Logger::log("Failed to get conan profile path.");
+        return 1;
+    }
 
-    std::for_each(cmake_lines.begin(),cmake_lines.end(),[](const std::string& line)
-    {
-        Logger::Logger::log(line);
-    });
+    std::string profile_path = EasyProc::ProcessHandler::getLog();
+    profile_path.erase(std::remove(profile_path.begin(), profile_path.end(), '\n'),
+                       profile_path.end());
+    profile_path.erase(std::remove(profile_path.begin(), profile_path.end(), '\r'),
+                       profile_path.end());
 
+    std::ifstream default_profile(profile_path);
+    if (!default_profile.is_open())
+    {
+        Leaf::Logger::log("Could not open default conan profile at: " + profile_path);
+        return 1;
+    }
+
+    std::vector<std::string> lines;
+    std::string              line;
+    while (std::getline(default_profile, line))
+    {
+        if (line.find("compiler.cppstd=") != std::string::npos)
+        {
+            lines.push_back("compiler.cppstd=" + cpp_std);
+        }
+        else if (line.find("build_type=") != std::string::npos)
+        {
+            lines.push_back("build_type=" + build_type);
+        }
+        else if (line.find("compiler=") != std::string::npos &&
+                 compiler.find("clang") != std::string::npos)
+        {
+            lines.push_back("compiler=clang");
+        }
+        else
+        {
+            lines.push_back(line);
+        }
+    }
+    default_profile.close();
+
+    std::string os_profile;
+#ifdef _WIN32
+    os_profile = "profiles/windows_profile";
+#elif defined(__APPLE__)
+    os_profile = "profiles/macos_profile";
+#else
+    os_profile = "profiles/linux_profile";
+#endif
+
+    std::filesystem::create_directories("profiles");
+    std::ofstream out(os_profile);
+    if (!out.is_open())
+    {
+        Leaf::Logger::log("Could not open output profile file for writing: " + os_profile);
+        return 1;
+    }
+
+    for (const auto& l : lines)
+    {
+        out << l << "\n";
+    }
+    out.close();
+
+    Leaf::Logger::log("Profile generated successfully at " + os_profile);
     return 0;
-};
+}
 
-} // namespace LeafCommands
+} // namespace Leaf

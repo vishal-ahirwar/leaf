@@ -2,6 +2,7 @@
 #include <logger.h>
 
 #include <string>
+#include <filesystem>
 
 #include "../libs/commands/include/commands.h"
 #include "easyproc.h"
@@ -11,9 +12,9 @@ using namespace std::string_literals;
 
 TEST(Logger,log)
 {
-    Logger::Logger::log("Initiating test");
-    Logger::Logger::log("Almost done");
-    Logger::Logger::log("Test completed");
+    Leaf::Logger::log("Initiating test");
+    Leaf::Logger::log("Almost done");
+    Leaf::Logger::log("Test completed");
 }
 TEST(ReplaceStringTest, BasicReplacement)
 {
@@ -91,29 +92,39 @@ TEST(RunExternalProcessTest, InvalidCommand)
 
 TEST(CMakeToConanProfile,Generation)
 {
-    class HighCommand:public LeafCommands::LeafCommands
+    class HighCommand:public Leaf::CLI
     {
     public:
-        HighCommand() : LeafCommands(std::vector<std::string>())
+        HighCommand() : Leaf::CLI(std::vector<std::string>())
         {
         }
-        int run(){return LeafCommands::generateProfile();};
+        int run(){return generateProfile();};
     };
 
 
     HighCommand highCommand;
     ASSERT_EQ(highCommand.run(),0);
+
+    std::string os_profile;
+#ifdef _WIN32
+    os_profile = "profiles/windows_profile";
+#elif defined(__APPLE__)
+    os_profile = "profiles/macos_profile";
+#else
+    os_profile = "profiles/linux_profile";
+#endif
+    ASSERT_TRUE(std::filesystem::exists(os_profile));
 }
 
 TEST(Docs,Generation)
 {
-    class HighCommand:public LeafCommands::LeafCommands
+    class HighCommand:public Leaf::CLI
     {
     public:
-        HighCommand() : LeafCommands(std::vector<std::string>())
+        HighCommand() : Leaf::CLI(std::vector<std::string>())
         {
         }
-        int run(){return LeafCommands::generateDocs();};
+        int run(){return generateDocs();};
     };
 
 

@@ -1,7 +1,7 @@
 find_package(fmt)
 find_package(cpr)
 find_package(nlohmann_json)
-add_library(downloader src/main.cpp) # Add your Source Files here
+add_library(downloader src/downloader.cpp) # Add your Source Files here
 #@add_target_link_libraries Warning: Do not remove this line
 target_link_libraries(downloader PRIVATE fmt::fmt cpr::cpr nlohmann_json::nlohmann_json)
 target_include_directories(downloader PUBLIC include)

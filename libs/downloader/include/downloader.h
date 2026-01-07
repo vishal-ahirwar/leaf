@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace Downloder
+namespace Downloader
 {
 void download(const std::string& url, const std::string& filePath);
 
@@ -11,4 +11,4 @@ void downloadGithubDirectory(const std::string& owner,
                              const std::string& directory,
                              const std::string& localPath);
 
-} // namespace Downloder
+} // namespace Downloader

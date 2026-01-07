@@ -9,9 +9,9 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-#include "../include/downloder.h"
+#include "downloader.h"
 
-namespace Downloder
+namespace Downloader
 {
 
 std::string urlEncode(const std::string& value)
@@ -146,4 +146,4 @@ void downloadGithubDirectory(const std::string& owner,
         }
     }
 }
-} // namespace Leaf
+} // namespace Downloader
