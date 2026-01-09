@@ -21,6 +21,9 @@
 
 #include "logger.h"
 
+
+#include<pystring.h>
+
 namespace Leaf
 {
 int CommandRegistry::exec()
@@ -1487,16 +1490,27 @@ int CLI::generateProfile()
         {
             lines.push_back("build_type=" + build_type);
         }
-        else if (line.find("compiler=") != std::string::npos &&
-                 compiler.find("clang") != std::string::npos)
-        {
-            lines.push_back("compiler=clang");
-        }
         else
         {
             lines.push_back(line);
         }
     }
+    lines.push_back("&:compiler=clang");
+    EasyProc::ProcessHandler::runExternalProcess({"clang","-v"});
+    std::string log{EasyProc::ProcessHandler::getLog()};
+    std::vector<std::string> clang_logs_lines{};
+    pystring::splitlines(log,clang_logs_lines);
+
+    Logger::log(clang_logs_lines.front());
+    std::string clang_compiler_version{
+        pystring::split(
+            pystring::split(
+                clang_logs_lines.front(),
+                " "
+                ).back(),
+                ".").front()
+    };
+    lines.push_back(fmt::format("&:compiler.version={}",clang_compiler_version).c_str());
     default_profile.close();
 
     std::string os_profile;

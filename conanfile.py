@@ -23,9 +23,11 @@ class LeafConan(ConanFile):
         self.requires("reproc/14.2.5")
         self.requires("cpr/1.12.0")
         self.requires("nlohmann_json/3.12.0")
+        self.requires("pystring/1.1.4")
+        self.requires("platformfolders/4.3.0")
         if self.options.build_app:  # Only for the app
             self.requires("gtest/1.17.0")
-            self.requires("platformfolders/4.3.0")
+
         else: # Only for the libs
             pass
     def layout(self):
