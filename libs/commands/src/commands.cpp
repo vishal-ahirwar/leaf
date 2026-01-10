@@ -1496,7 +1496,11 @@ int CLI::generateProfile()
         }
     }
     lines.push_back("&:compiler=clang");
-    EasyProc::ProcessHandler::runExternalProcess({"clang","-v"});
+    if (EasyProc::ProcessHandler::runExternalProcess({"clang","-v"})!=0)
+    {
+        Logger::log("Failed to get clang compiler info.");
+        return 1;
+    };
     std::string log{EasyProc::ProcessHandler::getLog()};
     std::vector<std::string> clang_logs_lines{};
     pystring::splitlines(log,clang_logs_lines);
@@ -1518,8 +1522,14 @@ int CLI::generateProfile()
     os_profile = "profiles/windows_profile";
 #elif defined(__APPLE__)
     os_profile = "profiles/macos_profile";
+    lines.push_back("[conf]");
+    lines.push_back("tools.system.package_manager:mode=install")
+    lines.push_back("tools.system.package_manager:sudo=True")
 #else
     os_profile = "profiles/linux_profile";
+    lines.push_back("[conf]");
+    lines.push_back("tools.system.package_manager:mode=install")
+    lines.push_back("tools.system.package_manager:sudo=True")
 #endif
 
     std::filesystem::create_directories("profiles");
