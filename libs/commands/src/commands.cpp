@@ -1523,13 +1523,13 @@ int CLI::generateProfile()
 #elif defined(__APPLE__)
     os_profile = "profiles/macos_profile";
     lines.push_back("[conf]");
-    lines.push_back("tools.system.package_manager:mode=install")
-    lines.push_back("tools.system.package_manager:sudo=True")
+    lines.push_back("tools.system.package_manager:mode=install");
+    lines.push_back("tools.system.package_manager:sudo=True");
 #else
     os_profile = "profiles/linux_profile";
     lines.push_back("[conf]");
-    lines.push_back("tools.system.package_manager:mode=install")
-    lines.push_back("tools.system.package_manager:sudo=True")
+    lines.push_back("tools.system.package_manager:mode=install");
+    lines.push_back("tools.system.package_manager:sudo=True");
 #endif
 
     std::filesystem::create_directories("profiles");
