@@ -9,6 +9,7 @@
 #include <fmt/color.h>
 #include <fmt/core.h>
 #include <leafconfig.h>
+#include <pystring.h>
 #include <sago/platform_folders.h>
 #include <spinner.h>
 #include <utils.h>
@@ -20,9 +21,6 @@
 #include <regex>
 
 #include "logger.h"
-
-
-#include<pystring.h>
 
 namespace Leaf
 {
@@ -56,8 +54,8 @@ int CommandRegistry::exec()
 }
 
 void CommandRegistry::registerCommands(std::string&&                   command,
-                                std::string&&                   description,
-                                const std::function<int(void)>& callable)
+                                       std::string&&                   description,
+                                       const std::function<int(void)>& callable)
 {
     _commands[command] = {description, callable};
 };
@@ -79,11 +77,11 @@ namespace Leaf
 CLI::CLI(std::vector<std::string>&& args)
     : _commands(std::make_unique<CommandRegistry>(
           CommandRegistry(std::move(args),
-                             []()
-                             {
-                                 fmt::print("🍃 Leaf - A modern C++ project manager.\n");
-                                 fmt::print("Run 'leaf help' for a list of commands.\n");
-                             }))),
+                          []()
+                          {
+                              fmt::print("🍃 Leaf - A modern C++ project manager.\n");
+                              fmt::print("Run 'leaf help' for a list of commands.\n");
+                          }))),
       _args(args)
 {
 
@@ -270,9 +268,10 @@ int CLI::create()
             }
             std::string name          = newPath.filename().string();
             std::string newPathString = newPath.string();
-            std::for_each(replacements.begin(),replacements.end(),
-                                  [&newPathString](const auto& rep)
-                                  { Utils::replaceString(newPathString, rep.first, rep.second); });
+            std::for_each(replacements.begin(),
+                          replacements.end(),
+                          [&newPathString](const auto& rep)
+                          { Utils::replaceString(newPathString, rep.first, rep.second); });
             if (templateContent.is_directory())
             {
                 if (fs::create_directories(newPathString))
@@ -291,9 +290,10 @@ int CLI::create()
                 std::ranges::copy(std::istreambuf_iterator<char>(in),
                                   std::istreambuf_iterator<char>{},
                                   std::back_inserter(content));
-                std::for_each(replacements.begin(),replacements.end(),
-                                      [&content](const auto& rep)
-                                      { Utils::replaceString(content, rep.first, rep.second); });
+                std::for_each(replacements.begin(),
+                              replacements.end(),
+                              [&content](const auto& rep)
+                              { Utils::replaceString(content, rep.first, rep.second); });
                 std::ofstream out(newPathString);
                 out << content;
                 out.close();
@@ -346,7 +346,7 @@ int CLI::upload()
         fmt::println("{}", EasyProc::ProcessHandler::getLog());
         return 1;
     }
-    
+
     fmt::println("Upload successful.");
     return 0;
 };
@@ -364,8 +364,9 @@ int CLI::format()
     spin.start();
     // Use git ls-files or find to get all cpp/h files?
     // Or just recurse current directory.
-    // simpler: use easyproc to run clang-format on known directories (apps, libs, tests, src, include)
-    
+    // simpler: use easyproc to run clang-format on known directories (apps, libs, tests, src,
+    // include)
+
     std::vector<std::string> dirs_to_format = {"apps", "libs", "tests", "src", "include"};
     std::vector<std::string> files_to_format;
 
@@ -378,7 +379,8 @@ int CLI::format()
                 if (entry.is_regular_file())
                 {
                     std::string ext = entry.path().extension().string();
-                    if (ext == ".cpp" || ext == ".h" || ext == ".hpp" || ext == ".c" || ext == ".cc")
+                    if (ext == ".cpp" || ext == ".h" || ext == ".hpp" || ext == ".c" ||
+                        ext == ".cc")
                     {
                         files_to_format.push_back(entry.path().string());
                     }
@@ -398,10 +400,11 @@ int CLI::format()
     // One by one is safer for command line length limits.
     // Or just pass -i and the file list if not too long.
     // Let's do one by one for simplicity and robustness.
-    
+
     for (const auto& file : files_to_format)
     {
-        EasyProc::ProcessHandler::runExternalProcess({"clang-format", "-i", "-style=file", file}, false, false);
+        EasyProc::ProcessHandler::runExternalProcess(
+            {"clang-format", "-i", "-style=file", file}, false, false);
     }
 
     spin.stop();
@@ -745,15 +748,17 @@ int CLI::removePackage()
     for (size_t i = 2; i < _args.size(); ++i)
     {
         const auto& arg = _args[i];
-        if (arg == "-r") continue;
+        if (arg == "-r")
+            continue;
         packages_to_remove.push_back(arg);
     }
 
-    if (packages_to_remove.empty()) return 0;
+    if (packages_to_remove.empty())
+        return 0;
 
     // 1. Remove from conanfile.py
     std::vector<std::string> lines;
-    std::ifstream in("conanfile.py");
+    std::ifstream            in("conanfile.py");
     if (!in.is_open())
     {
         fmt::println("error: failed to open conanfile.py");
@@ -797,14 +802,16 @@ int CLI::removePackage()
     out.close();
 
     // 2. Run install to update dependencies
-    if (install() != 0) return -1;
+    if (install() != 0)
+        return -1;
 
     // 3. Update CMakeLists.txt (Best effort removal)
     auto update_cmake_lists = [&](const std::string& path)
     {
-        if (!std::filesystem::exists(path)) return;
+        if (!std::filesystem::exists(path))
+            return;
         std::vector<std::string> cmake_lines;
-        std::ifstream cmake_in(path);
+        std::ifstream            cmake_in(path);
         if (cmake_in.is_open())
         {
             std::string l;
@@ -830,7 +837,7 @@ int CLI::removePackage()
                 // might be complex. Users might need to do this manually.
                 // But `addPackage` adds it to target_link_libraries...
                 // Let's at least warn or try simple removal if on same line.
-                
+
                 if (!remove)
                 {
                     cmake_lines.push_back(l);
@@ -839,7 +846,8 @@ int CLI::removePackage()
             cmake_in.close();
 
             std::ofstream cmake_out(path);
-            for (const auto& l : cmake_lines) cmake_out << l << "\n";
+            for (const auto& l : cmake_lines)
+                cmake_out << l << "\n";
         }
     };
 
@@ -847,8 +855,9 @@ int CLI::removePackage()
     update_cmake_lists("src/CMakeLists.txt");
     // Also recurse into apps/ and libs/ subdirs if we want to be thorough
     // but for now this is a basic implementation.
-    
-    fmt::println("Packages removed from conanfile.py. Please check CMakeLists.txt for any leftover linking.");
+
+    fmt::println("Packages removed from conanfile.py. Please check CMakeLists.txt for any leftover "
+                 "linking.");
     return 0;
 };
 
@@ -903,9 +912,10 @@ int CLI::addApp()
             newPath                   = (fs::current_path() / "apps" / oldPath.substr(index));
             std::string name          = newPath.filename().string();
             std::string newPathString = newPath.string();
-            std::for_each(replacements.begin(),replacements.end(),
-                                  [&newPathString](const auto& rep)
-                                  { Utils::replaceString(newPathString, rep.first, rep.second); });
+            std::for_each(replacements.begin(),
+                          replacements.end(),
+                          [&newPathString](const auto& rep)
+                          { Utils::replaceString(newPathString, rep.first, rep.second); });
             if (templateContent.is_directory())
             {
                 if (fs::create_directories(newPathString))
@@ -924,9 +934,10 @@ int CLI::addApp()
                 std::ranges::copy(std::istreambuf_iterator<char>(in),
                                   std::istreambuf_iterator<char>{},
                                   std::back_inserter(content));
-                std::for_each(replacements.begin(),replacements.end(),
-                                      [&content](const auto& rep)
-                                      { Utils::replaceString(content, rep.first, rep.second); });
+                std::for_each(replacements.begin(),
+                              replacements.end(),
+                              [&content](const auto& rep)
+                              { Utils::replaceString(content, rep.first, rep.second); });
                 std::ofstream out(newPathString);
                 out << content;
                 out.close();
@@ -999,9 +1010,10 @@ int CLI::addLib()
             newPath                   = (fs::current_path() / "libs" / oldPath.substr(index));
             std::string name          = newPath.filename().string();
             std::string newPathString = newPath.string();
-            std::for_each(replacements.begin(),replacements.end(),
-                                  [&newPathString](const auto& rep)
-                                  { Utils::replaceString(newPathString, rep.first, rep.second); });
+            std::for_each(replacements.begin(),
+                          replacements.end(),
+                          [&newPathString](const auto& rep)
+                          { Utils::replaceString(newPathString, rep.first, rep.second); });
             if (templateContent.is_directory())
             {
                 if (fs::create_directories(newPathString))
@@ -1020,9 +1032,10 @@ int CLI::addLib()
                 std::ranges::copy(std::istreambuf_iterator<char>(in),
                                   std::istreambuf_iterator<char>{},
                                   std::back_inserter(content));
-                std::for_each(replacements.begin(),replacements.end(),
-                                      [&content](const auto& rep)
-                                      { Utils::replaceString(content, rep.first, rep.second); });
+                std::for_each(replacements.begin(),
+                              replacements.end(),
+                              [&content](const auto& rep)
+                              { Utils::replaceString(content, rep.first, rep.second); });
                 std::ofstream out(newPathString);
                 out << content;
                 out.close();
@@ -1052,16 +1065,17 @@ int CLI::doctor()
 
     bool allToolsInstalled{false};
 
-    std::for_each(tools.begin(),tools.end(),
-                          [&allToolsInstalled](const auto& tool)
-                          {
-                              allToolsInstalled = EasyProc::ProcessHandler::runExternalProcess(
-                                                      {tool, "--version"}) == 0;
-                              if (!allToolsInstalled)
-                              {
-                                  fmt::println("{}", EasyProc::ProcessHandler::getLog());
-                              }
-                          });
+    std::for_each(tools.begin(),
+                  tools.end(),
+                  [&allToolsInstalled](const auto& tool)
+                  {
+                      allToolsInstalled =
+                          EasyProc::ProcessHandler::runExternalProcess({tool, "--version"}) == 0;
+                      if (!allToolsInstalled)
+                      {
+                          fmt::println("{}", EasyProc::ProcessHandler::getLog());
+                      }
+                  });
     spin.stop();
     fmt::print(allToolsInstalled ? fmt::emphasis::bold | fmt::fg(fmt::color::medium_sea_green)
                                  : fmt::emphasis::underline | fmt::fg(fmt::color::crimson),
@@ -1111,7 +1125,7 @@ int CLI::build()
             spin.stop(); // Stop spinner to run install (which has its own spinner)
             install();
             spin.start(); // Restart spinner
-            
+
             // Check if presets were generated
             if (fs::exists("CMakePresets.json"))
             {
@@ -1122,7 +1136,8 @@ int CLI::build()
                     fmt::println("{}", EasyProc::ProcessHandler::getLog());
                 }
                 spin.setDisplayMessage("Compiling");
-                if (0 != EasyProc::ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"}))
+                if (0 != EasyProc::ProcessHandler::runExternalProcess(
+                             {"cmake", "--build", ".build/debug"}))
                 {
                     fmt::println("{}", EasyProc::ProcessHandler::getLog());
                 }
@@ -1130,7 +1145,7 @@ int CLI::build()
                 return 0;
             }
         };
-        
+
         if (!fs::exists(".build/debug"))
         {
             spin.setDisplayMessage("Generating cmake files");
@@ -1220,16 +1235,16 @@ int CLI::run()
 
 int CLI::init()
 {
-    namespace fs = std::filesystem;
+    namespace fs             = std::filesystem;
     std::string project_name = fs::current_path().filename().string();
-    std::string lib_name = project_name + "lib";
+    std::string lib_name     = project_name + "lib";
 
     // Allow overriding name via args? For now, simpler is better.
-    
+
     if (_args.size() > 2)
     {
         project_name = _args[2];
-        lib_name = project_name + "lib";
+        lib_name     = project_name + "lib";
     }
 
     fmt::println("Initializing project '{}' in current directory.", project_name);
@@ -1238,7 +1253,7 @@ int CLI::init()
                                                     {"%LIBNAME%", lib_name},
                                                     {"startertemplate", project_name},
                                                     {"%WORKSPACE%", project_name}};
-    auto home = sago::getConfigHome();
+    auto                               home = sago::getConfigHome();
     if (fs::exists(home))
     {
         auto starter_template = fs::path(home) / ".leaf" / "startertemplate";
@@ -1264,24 +1279,29 @@ int CLI::init()
                 // Determine new path relative to current directory
                 // startertemplate/foo/bar -> ./foo/bar
                 // We need to skip "startertemplate/"
-                std::string relPath = oldPath.substr(index + std::string("startertemplate").length());
+                std::string relPath =
+                    oldPath.substr(index + std::string("startertemplate").length());
                 // Remove leading separator if any
-                if (!relPath.empty() && (relPath[0] == '/' || relPath[0] == '\\')) {
+                if (!relPath.empty() && (relPath[0] == '/' || relPath[0] == '\\'))
+                {
                     relPath = relPath.substr(1);
                 }
-                
-                if (relPath.empty()) continue; // Skip root folder itself
+
+                if (relPath.empty())
+                    continue; // Skip root folder itself
 
                 newPath = fs::current_path() / relPath;
             }
-            
+
             std::string name          = newPath.filename().string();
             std::string newPathString = newPath.string();
-            std::for_each(replacements.begin(),replacements.end(),
-                                  [&newPathString](const auto& rep)
-                                  { Utils::replaceString(newPathString, rep.first, rep.second); });
-            
-            if (fs::exists(newPathString)) {
+            std::for_each(replacements.begin(),
+                          replacements.end(),
+                          [&newPathString](const auto& rep)
+                          { Utils::replaceString(newPathString, rep.first, rep.second); });
+
+            if (fs::exists(newPathString))
+            {
                 fmt::println("Skipping existing file/directory: {}", newPathString);
                 continue;
             }
@@ -1304,9 +1324,10 @@ int CLI::init()
                 std::ranges::copy(std::istreambuf_iterator<char>(in),
                                   std::istreambuf_iterator<char>{},
                                   std::back_inserter(content));
-                std::for_each(replacements.begin(),replacements.end(),
-                                      [&content](const auto& rep)
-                                      { Utils::replaceString(content, rep.first, rep.second); });
+                std::for_each(replacements.begin(),
+                              replacements.end(),
+                              [&content](const auto& rep)
+                              { Utils::replaceString(content, rep.first, rep.second); });
                 std::ofstream out(newPathString);
                 out << content;
                 out.close();
@@ -1330,14 +1351,15 @@ int CLI::help()
         _commands->getCommands().begin(), _commands->getCommands().end()};
     fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green),
                "Available Commands\n");
-    std::for_each(sorted_commands.begin(),sorted_commands.end(),
-                          [](const auto& command)
-                          {
-                              fmt::print("{:<8} - ", command.first);
-                              fmt::print(fmt::emphasis::faint | fmt::fg(fmt::color::floral_white),
-                                         "{}\n",
-                                         command.second.first);
-                          });
+    std::for_each(sorted_commands.begin(),
+                  sorted_commands.end(),
+                  [](const auto& command)
+                  {
+                      fmt::print("{:<8} - ", command.first);
+                      fmt::print(fmt::emphasis::faint | fmt::fg(fmt::color::floral_white),
+                                 "{}\n",
+                                 command.second.first);
+                  });
     fmt::println("");
     return 0;
 }
@@ -1365,7 +1387,8 @@ int CLI::generateDocs()
         return 1;
     }
     spin.stop();
-    fmt::println("Documentation generated in 'html/latex' directory (check Doxyfile for output path).");
+    fmt::println(
+        "Documentation generated in 'html/latex' directory (check Doxyfile for output path).");
     return 0;
 }
 
@@ -1407,7 +1430,7 @@ int CLI::startLeafUpdater()
     fmt::println("Note : LeafUpdater is not implemented yet!");
 
     EasyProc::ProcessHandler::runExternalProcess({"updater"}, false, true);
-    
+
     return 0;
 };
 
@@ -1449,17 +1472,15 @@ int CLI::generateProfile()
         cmake.close();
     }
 
-    if (EasyProc::ProcessHandler::runExternalProcess({"conan", "profile", "detect", "--force"},
-                                                     true,
-                                                     true) != 0)
+    if (EasyProc::ProcessHandler::runExternalProcess(
+            {"conan", "profile", "detect", "--force"}, true, true) != 0)
     {
         Leaf::Logger::log("Conan profile detect failed. Ensure Conan is installed.");
         return 1;
     }
 
-    if (EasyProc::ProcessHandler::runExternalProcess({"conan", "profile", "path", "default"},
-                                                     true,
-                                                     false) != 0)
+    if (EasyProc::ProcessHandler::runExternalProcess(
+            {"conan", "profile", "path", "default"}, true, false) != 0)
     {
         Leaf::Logger::log("Failed to get conan profile path.");
         return 1;
@@ -1496,25 +1517,28 @@ int CLI::generateProfile()
         }
     }
     lines.push_back("&:compiler=clang");
-    if (EasyProc::ProcessHandler::runExternalProcess({"clang","-v"})!=0)
+    if (EasyProc::ProcessHandler::runExternalProcess({"clang", "-v"}) != 0)
     {
         Logger::log("Failed to get clang compiler info.");
         return 1;
     };
-    std::string log{EasyProc::ProcessHandler::getLog()};
+    std::string              log{EasyProc::ProcessHandler::getLog()};
     std::vector<std::string> clang_logs_lines{};
-    pystring::splitlines(log,clang_logs_lines);
+    pystring::splitlines(log, clang_logs_lines);
 
-    Logger::log(clang_logs_lines.front());
-    std::string clang_compiler_version{
-        pystring::split(
-            pystring::split(
-                clang_logs_lines.front(),
-                " "
-                ).back(),
-                ".").front()
-    };
-    lines.push_back(fmt::format("&:compiler.version={}",clang_compiler_version).c_str());
+    std::string first_line = clang_logs_lines.front();
+
+    std::regex  version_regex(R"(clang version ([0-9]+(\.[0-9]+)*))");
+    std::smatch match;
+
+    if (!std::regex_search(first_line, match, version_regex))
+    {
+        Logger::log("Failed to parse clang version.");
+        return 1;
+    }
+
+    std::string clang_compiler_version = match[1];
+    lines.push_back(fmt::format("&:compiler.version={}", pystring::split(clang_compiler_version,".").front()));
     default_profile.close();
 
     std::string os_profile;
