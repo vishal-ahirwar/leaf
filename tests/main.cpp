@@ -1,16 +1,15 @@
 #include <gtest/gtest.h>
 #include <logger.h>
 
-#include <string>
 #include <filesystem>
+#include <string>
 
 #include "../libs/commands/include/commands.h"
 #include "easyproc.h"
 #include "utils.h"
 using namespace std::string_literals;
 
-
-TEST(Logger,log)
+TEST(Logger, log)
 {
     Leaf::Logger::log("Initiating test");
     Leaf::Logger::log("Almost done");
@@ -64,14 +63,14 @@ TEST(ReplaceStringTest, ReplaceWithEmpty)
 TEST(RunExternalProcessTest, Ls)
 {
     std::vector<std::string> command   = {"ls", "-l"};
-    int                      exit_code = EasyProc::ProcessHandler:: runExternalProcess(command);
+    int                      exit_code = EasyProc::ProcessHandler::runExternalProcess(command);
     ASSERT_EQ(exit_code, 0);
 }
 
 TEST(RunExternalProcessTest, Echo)
 {
     std::vector<std::string> command   = {"echo", "Hello, world!"};
-    int                      exit_code = EasyProc::ProcessHandler:: runExternalProcess(command);
+    int                      exit_code = EasyProc::ProcessHandler::runExternalProcess(command);
     ASSERT_EQ(exit_code, 0);
 }
 TEST(RunExternalProcessTest, Clang)
@@ -83,27 +82,28 @@ TEST(RunExternalProcessTest, Clang)
 TEST(RunExternalProcessTest, InvalidCommand)
 {
     std::vector<std::string> command   = {"invalid_command"};
-    int                      exit_code = EasyProc::ProcessHandler:: runExternalProcess(command);
+    int                      exit_code = EasyProc::ProcessHandler::runExternalProcess(command);
     ASSERT_NE(exit_code, 0);
 }
 
-
 //--------------Profile Gen-----------
 
-TEST(CMakeToConanProfile,Generation)
+TEST(CMakeToConanProfile, Generation)
 {
-    class HighCommand:public Leaf::CLI
+    class HighCommand : public Leaf::CLI
     {
-    public:
+      public:
         HighCommand() : Leaf::CLI(std::vector<std::string>())
         {
         }
-        int run(){return generateProfile();};
+        int run()
+        {
+            return generateProfile();
+        };
     };
 
-
     HighCommand highCommand;
-    ASSERT_EQ(highCommand.run(),0);
+    ASSERT_EQ(highCommand.run(), 0);
 
     std::string os_profile;
 #ifdef _WIN32
@@ -116,18 +116,20 @@ TEST(CMakeToConanProfile,Generation)
     ASSERT_TRUE(std::filesystem::exists(os_profile));
 }
 
-TEST(Docs,Generation)
+TEST(Docs, Generation)
 {
-    class HighCommand:public Leaf::CLI
+    class HighCommand : public Leaf::CLI
     {
-    public:
+      public:
         HighCommand() : Leaf::CLI(std::vector<std::string>())
         {
         }
-        int run(){return generateDocs();};
+        int run()
+        {
+            return generateDocs();
+        };
     };
 
-
     HighCommand highCommand;
-    ASSERT_EQ(highCommand.run(),0);
+    ASSERT_EQ(highCommand.run(), 0);
 }

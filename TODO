@@ -1,13 +1,10 @@
 - Env setup before installing 3rd-party libs through conan2 everytime user run leaf install
 - Fix how commands are being managed !
+- Fix value being returned by methods and them correctly
 - doctor
-
 - auto cmake generation
-
 - auto conan profile host generation
-
 - auto artifact setup for private conan packages
-
 - add cmake/platforms *.cmake files for well known platforms and frameworks like qt, web,android cmake/qtconfig.cmake,
   cmake/platforms/webconfig.cmake, cmake/platforms/androidconfig.cmake fetch these from leaf's gihub repo only if needed
 

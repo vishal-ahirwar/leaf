@@ -1,3 +1,4 @@
-namespace Generator {
+namespace Generator
+{
 
 }

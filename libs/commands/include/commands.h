@@ -4,50 +4,30 @@
 
 #ifndef LEAF_LEAFCOMMANDS_H
 #define LEAF_LEAFCOMMANDS_H
+#include <commandregistry.h>
+
+#include <functional>
+#include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
-#include<unordered_map>
-#include <functional>
-#include<map>
+
 namespace Leaf
 {
-
-class CommandRegistry
-{
-
-    std::unordered_map<std::string, std::pair<std::string, std::function<int()>>> _commands{};
-
-    std::vector<std::string> _args{};
-
-    std::function<void(void)> _default{};
-
-  public:
-    CommandRegistry() = delete;
-    CommandRegistry(std::vector<std::string>&& args, std::function<void(void)> default_func)
-        : _args(args), _default(default_func) {};
-    const std::unordered_map<std::string, std::pair<std::string, std::function<int()>>>&
-                                    getCommands() const;
-    void                            registerCommands(std::string&&                   command,
-                                                     std::string&&                   description,
-                                                     const std::function<int(void)>& callable);
-    const std::vector<std::string>& getArgs() const;
-    int                             exec();
-};
 
 class CLI
 {
 
-    std::unique_ptr<CommandRegistry> _commands{};
-    std::vector<std::string>  _args{};
+    std::unique_ptr<commandregistry> _commands{};
+    std::vector<std::string>         _args{};
 
-public:
+  public:
     CLI() = delete;
     CLI(std::vector<std::string>&& args);
     int exec();
 
-protected:
-
+  protected:
     int generateProfile();
 
     int install();
@@ -95,7 +75,5 @@ protected:
     int startLeafUpdater();
 };
 } // namespace Leaf
-
-
 
 #endif // LEAF_LEAFCOMMANDS_H

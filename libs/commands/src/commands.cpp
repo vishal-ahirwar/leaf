@@ -24,59 +24,9 @@
 
 namespace Leaf
 {
-int CommandRegistry::exec()
-{
-    if (_args.size() < 2)
-    {
-        _default();
-        return 1;
-    }
-    bool commandExists{false};
-    std::for_each(_args.begin() + 1,
-                  _args.end(),
-                  [this, &commandExists](const auto& command)
-                  {
-                      if (const auto& result = _commands.find(command); result != _commands.end())
-                      {
-                          commandExists = true;
-                          result->second.second();
-                      }
-                      else
-                      {
-                          fmt::print(fmt::fg(fmt::color::red), "{} Command not found!\n", command);
-                      }
-                  });
-    if (!commandExists)
-    {
-        fmt::print(fmt::fg(fmt::color::medium_spring_green), "Try leaf help\n");
-    }
-    return 0;
-}
-
-void CommandRegistry::registerCommands(std::string&&                   command,
-                                       std::string&&                   description,
-                                       const std::function<int(void)>& callable)
-{
-    _commands[command] = {description, callable};
-};
-
-const std::unordered_map<std::string, std::pair<std::string, std::function<int()>>>&
-CommandRegistry::getCommands() const
-{
-    return _commands;
-}
-
-const std::vector<std::string>& CommandRegistry::getArgs() const
-{
-    return _args;
-}
-} // namespace Leaf
-
-namespace Leaf
-{
 CLI::CLI(std::vector<std::string>&& args)
-    : _commands(std::make_unique<CommandRegistry>(
-          CommandRegistry(std::move(args),
+    : _commands(std::make_unique<commandregistry>(
+          commandregistry(std::move(args),
                           []()
                           {
                               fmt::print("🍃 Leaf - A modern C++ project manager.\n");
@@ -1537,7 +1487,8 @@ int CLI::generateProfile()
     }
 
     std::string clang_compiler_version = match[1];
-    lines.push_back(fmt::format("&:compiler.version={}", pystring::split(clang_compiler_version,".").front()));
+    lines.push_back(
+        fmt::format("&:compiler.version={}", pystring::split(clang_compiler_version, ".").front()));
     default_profile.close();
 
     std::string os_profile;

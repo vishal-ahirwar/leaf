@@ -1,3 +1,5 @@
+#include "downloader.h"
+
 #include <cpr/cpr.h>
 #include <cpr/ssl_options.h>
 #include <fmt/base.h>
@@ -8,8 +10,6 @@
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
-
-#include "downloader.h"
 
 namespace Downloader
 {
