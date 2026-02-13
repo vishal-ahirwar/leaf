@@ -1436,7 +1436,6 @@ int CLI::startLeafUpdater()
 
 int CLI::generateProfile()
 {
-    Leaf::Logger::log("Generating profile...");
 
     std::string cpp_std    = "20";
     std::string compiler   = "clang";
@@ -1473,7 +1472,7 @@ int CLI::generateProfile()
     }
 
     if (EasyProc::ProcessHandler::runExternalProcess(
-            {"conan", "profile", "detect", "--force"}, true, true) != 0)
+            {"conan", "profile", "detect", "--force"}, true, false) != 0)
     {
         Leaf::Logger::log("Conan profile detect failed. Ensure Conan is installed.");
         return 1;
@@ -1570,7 +1569,6 @@ int CLI::generateProfile()
     }
     out.close();
 
-    Leaf::Logger::log("Profile generated successfully at " + os_profile);
     return 0;
 }
 
