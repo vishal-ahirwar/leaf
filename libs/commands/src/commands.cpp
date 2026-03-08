@@ -6,6 +6,7 @@
 
 #include <downloader.h>
 #include <easyproc.h>
+#include <fmt/base.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
 #include <leafconfig.h>
@@ -1366,20 +1367,21 @@ int CLI::setupToolChain()
         if (!exists({"cmd", "/c", "where", "cl"}))
         {
             fmt::println("Installing MSVC build tools...");
-            const bool msvc_ok = tryCommands(
-                {{"winget",
-                  "install",
-                  "--id",
-                  "Microsoft.VisualStudio.2022.BuildTools",
-                  "-e",
-                  "--override",
-                  "--quiet --wait --norestart --add Microsoft.VisualStudio.Workload.VCTools"},
-                 {"choco", "install", "visualstudio2022buildtools", "-y"}});
+
+            //Download this file and use this to install build tools silently with all workloads and components needed for C++ development https://github.com/vishal-ahirwar/flick/blob/master/res/flick.vsconfig --config flick.vsconfig
+            fmt::println("Installing MSVC build tools...");
+            Leaf::Logger::log("You may need to select 'Desktop development with C++' workload component in installer.");
+            Leaf::Logger::log("If this fails, try installing manually from https://visualstudio.microsoft.com/downloads/ (select 'Build Tools' workload) or use --mingw option to install mingw toolchain instead.");
+            const bool msvc_ok = tryCommands({
+                {"winget", "install", "--id", "Microsoft.VisualStudio.2022.BuildTools", "-e"},
+                {"choco", "install", "visualstudio2022buildtools", "-y"}
+            });
             setup_ok &= msvc_ok;
             if (!msvc_ok)
             {
                 Leaf::Logger::log("Failed to install MSVC build tools.");
             }
+
         }
 
         if (!exists({"clang", "--version"}))
