@@ -27,7 +27,7 @@ if errorlevel 1 (
 del /f /q "%ZIP_PATH%" >nul 2>&1
 
 echo Adding %LEAF_DIR% to PATH...
-%PS% "$target='%LEAF_DIR%'; $userPath=[Environment]::GetEnvironmentVariable('Path','User'); if([string]::IsNullOrWhiteSpace($userPath)){ [Environment]::SetEnvironmentVariable('Path',$target,'User'); Write-Output 'User PATH initialized.' } elseif(($userPath -split ';') -contains $target){ Write-Output 'PATH already contains target.' } else { [Environment]::SetEnvironmentVariable('Path',($userPath.TrimEnd(';') + ';' + $target),'User'); Write-Output 'User PATH updated.' }"
+%PS% "$leaf='%LEAF_DIR%'; $windowsApps=Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps'; $userPath=[Environment]::GetEnvironmentVariable('Path','User'); $parts=@(); if(-not [string]::IsNullOrWhiteSpace($userPath)){ $parts += ($userPath -split ';') }; if(($parts -notcontains $windowsApps) -and -not [string]::IsNullOrWhiteSpace($windowsApps)){ $parts += $windowsApps }; if($parts -notcontains $leaf){ $parts += $leaf }; $newPath = (($parts | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique) -join ';'); [Environment]::SetEnvironmentVariable('Path',$newPath,'User'); Write-Output 'User PATH updated safely.'"
 
 echo Installation complete. Please restart your terminal for the changes to take effect.
 endlocal

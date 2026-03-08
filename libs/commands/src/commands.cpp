@@ -301,7 +301,7 @@ int CLI::publish()
     Spinner spin("Creating Package");
     spin.start();
     if (0 !=
-        EasyProc::ProcessHandler::runExternalProcess({"conan", "create", ".", "-b", "missing"}))
+        EasyProc::ProcessHandler::runExternalProcess({"conan", "create", ".", "-b", "missing","-pr", Utils::getOSProfilePath()}))
     {
         fmt::println("{}", EasyProc::ProcessHandler::getLog());
     };
