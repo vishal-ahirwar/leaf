@@ -8,6 +8,6 @@ namespace Leaf
 void Logger::log(const std::string& name)
 {
     fmt::print(fmt::emphasis::bold | fmt::emphasis::faint, "Message : ");
-    fmt::println("{}", name);
+    fmt::println("{}\n", name);
 }
 } // namespace Leaf

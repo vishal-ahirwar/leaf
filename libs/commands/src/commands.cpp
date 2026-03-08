@@ -1017,7 +1017,7 @@ int CLI::doctor()
 int CLI::build()
 {
 
-    namespace fs = std::filesystem;
+    namespace fs                   = std::filesystem;
     const bool        release_mode = isReleaseMode(*_commands);
     const std::string mode         = release_mode ? "release" : "debug";
     const std::string build_dir    = fmt::format(".build/{}", mode);
@@ -1034,8 +1034,9 @@ int CLI::build()
     {
         app_target = _commands->getPositionals().front();
     }
-    auto path=mode=="release" ? "build/Release" : "build/Debug";
-    if (!fs::exists(fmt::format(".install/{}",path)) && (fs::exists("conanfile.txt") || fs::exists("conanfile.py")))
+    auto path = mode == "release" ? "build/Release" : "build/Debug";
+    if (!fs::exists(fmt::format(".install/{}", path)) &&
+        (fs::exists("conanfile.txt") || fs::exists("conanfile.py")))
     {
         if (install() != 0)
         {
@@ -1064,16 +1065,15 @@ int CLI::build()
         if (!fs::exists(build_dir))
         {
             spin.setDisplayMessage("Generating cmake files");
-            if (EasyProc::ProcessHandler::runExternalProcess({"cmake",
-                                                              "-S",
-                                                              ".",
-                                                              "-B",
-                                                              build_dir,
-                                                              "-G",
-                                                              "Ninja",
-                                                              fmt::format("-DCMAKE_BUILD_TYPE={}",
-                                                                          release_mode ? "Release"
-                                                                                       : "Debug")}) !=
+            if (EasyProc::ProcessHandler::runExternalProcess(
+                    {"cmake",
+                     "-S",
+                     ".",
+                     "-B",
+                     build_dir,
+                     "-G",
+                     "Ninja",
+                     fmt::format("-DCMAKE_BUILD_TYPE={}", release_mode ? "Release" : "Debug")}) !=
                 0)
             {
                 spin.stop();
@@ -1351,7 +1351,7 @@ int CLI::setupToolChain()
         {
             fmt::println("Installing MinGW toolchain...");
             const bool mingw_ok = tryCommands(
-                {{"winget", "install", "--id", "niXman.Mingw", "-e"},
+                {{"winget", "install", "-e","--id", "BrechtSanders.WinLibs.POSIX.UCRT"},
                  {"choco", "install", "mingw", "-y"},
                  {"scoop", "install", "mingw"}});
             setup_ok &= mingw_ok;
@@ -1381,18 +1381,18 @@ int CLI::setupToolChain()
                 Leaf::Logger::log("Failed to install MSVC build tools.");
             }
         }
-    }
 
-    if (!exists({"clang", "--version"}))
-    {
-        fmt::println("Installing clang...");
-        const bool clang_ok = tryCommands({{"winget", "install", "--id", "LLVM.LLVM", "-e"},
-                                           {"choco", "install", "llvm", "-y"},
-                                           {"scoop", "install", "llvm"}});
-        setup_ok &= clang_ok;
-        if (!clang_ok)
+        if (!exists({"clang", "--version"}))
         {
-            Leaf::Logger::log("Failed to install clang.");
+            fmt::println("Installing clang...");
+            const bool clang_ok = tryCommands({{"winget", "install", "--id", "LLVM.LLVM", "-e"},
+                                               {"choco", "install", "llvm", "-y"},
+                                               {"scoop", "install", "llvm"}});
+            setup_ok &= clang_ok;
+            if (!clang_ok)
+            {
+                Leaf::Logger::log("Failed to install clang.");
+            }
         }
     }
 
@@ -1412,10 +1412,9 @@ int CLI::setupToolChain()
     if (!exists({"ninja", "--version"}))
     {
         fmt::println("Installing ninja...");
-        const bool ninja_ok = tryCommands(
-            {{"winget", "install", "--id", "Ninja-build.Ninja", "-e"},
-             {"choco", "install", "ninja", "-y"},
-             {"scoop", "install", "ninja"}});
+        const bool ninja_ok = tryCommands({{"winget", "install", "--id", "Ninja-build.Ninja", "-e"},
+                                           {"choco", "install", "ninja", "-y"},
+                                           {"scoop", "install", "ninja"}});
         setup_ok &= ninja_ok;
         if (!ninja_ok)
         {
@@ -1426,16 +1425,13 @@ int CLI::setupToolChain()
     if (!exists({"conan", "--version"}))
     {
         fmt::println("Installing conan...");
-        const bool conan_ok = tryCommands(
-            {{"winget",
-              "install",
-              "--id",
-              "Conan.Conan",
-              "-e",
-              "--accept-package-agreements",
-              "--accept-source-agreements"},
-             {"python", "-m", "pip", "install", "--user", "conan"},
-             {"pip", "install", "--user", "conan"}});
+        const bool conan_ok = tryCommands({{"winget",
+                                            "install",
+                                            "-e",
+                                            "--id",
+                                            "JFrog.Conan"},
+                                           {"python", "-m", "pip", "install", "--user", "conan"},
+                                           {"pip", "install", "--user", "conan"}});
         setup_ok &= conan_ok;
         if (!conan_ok)
         {
@@ -1762,4 +1758,3 @@ int CLI::generateProfile()
 }
 
 } // namespace Leaf
-
