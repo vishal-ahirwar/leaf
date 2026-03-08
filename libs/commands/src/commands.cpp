@@ -1034,8 +1034,8 @@ int CLI::build()
     {
         app_target = _commands->getPositionals().front();
     }
-
-    if (!fs::exists(".install") && (fs::exists("conanfile.txt") || fs::exists("conanfile.py")))
+    auto path=mode=="release" ? "build/Release" : "build/Debug";
+    if (!fs::exists(fmt::format(".install/{}",path)) && (fs::exists("conanfile.txt") || fs::exists("conanfile.py")))
     {
         if (install() != 0)
         {
