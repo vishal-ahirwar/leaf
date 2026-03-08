@@ -5,7 +5,10 @@
       "name": "base",
       "hidden": true,
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/.build/${presetName}"
+      "binaryDir": "${sourceDir}/.build/${presetName}",
+      "cacheVariables": {
+        "CRT_STATIC_LINK":true
+      }
     },
     {
       "name": "debug",

@@ -4,38 +4,35 @@
 
 #include "commandregistry.h"
 
+#include <cargs/cargs.hpp>
 #include <fmt/color.h>
 
-#include <algorithm>
 namespace Leaf
 {
 int commandregistry::exec()
 {
-    if (_args.size() < 2)
+    cargs::Parser parser;
+    parser.addAlias('r', "release").addAlias('a', "app").addAlias('t', "target");
+    const auto parsed = parser.parse(_args);
+
+    _parsedCommand = parsed.command;
+    _positionals   = parsed.positionals;
+    _options       = parsed.options;
+
+    if (_parsedCommand.empty())
     {
         _default();
         return 1;
     }
-    bool commandExists{false};
-    std::for_each(_args.begin() + 1,
-                  _args.end(),
-                  [this, &commandExists](const auto& command)
-                  {
-                      if (const auto& result = _commands.find(command); result != _commands.end())
-                      {
-                          commandExists = true;
-                          result->second.second();
-                      }
-                      else
-                      {
-                          fmt::print(fmt::fg(fmt::color::red), "{} Command not found!\n", command);
-                      }
-                  });
-    if (!commandExists)
+
+    if (const auto it = _commands.find(_parsedCommand); it != _commands.end())
     {
-        fmt::print(fmt::fg(fmt::color::medium_spring_green), "Try leaf help\n");
+        return it->second.second();
     }
-    return 0;
+
+    fmt::print(fmt::fg(fmt::color::red), "{} Command not found!\n", _parsedCommand);
+    fmt::print(fmt::fg(fmt::color::medium_spring_green), "Try leaf help\n");
+    return 1;
 }
 
 void commandregistry::registerCommands(std::string&&                   command,
@@ -49,6 +46,30 @@ const std::unordered_map<std::string, std::pair<std::string, std::function<int()
 commandregistry::getCommands() const
 {
     return _commands;
+}
+
+const std::string& commandregistry::getCommand() const
+{
+    return _parsedCommand;
+}
+
+const std::vector<std::string>& commandregistry::getPositionals() const
+{
+    return _positionals;
+}
+
+bool commandregistry::hasOption(const std::string& option) const
+{
+    return _options.find(option) != _options.end();
+}
+
+std::optional<std::string> commandregistry::getOptionValue(const std::string& option) const
+{
+    if (const auto it = _options.find(option); it != _options.end() && !it->second.empty())
+    {
+        return it->second.front();
+    }
+    return std::nullopt;
 }
 
 const std::vector<std::string>& commandregistry::getArgs() const

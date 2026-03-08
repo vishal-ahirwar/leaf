@@ -8,6 +8,6 @@ add_library(commands  src/commands.cpp
 ) # Add your Source Files here
 #@add_target_link_libraries Warning: Do not remove this line
 target_link_libraries(commands PRIVATE utils downloader logger generator easyproc fmt::fmt sago::platform_folders spinner pystring::pystring)
-target_include_directories(commands PUBLIC include)
+target_include_directories(commands PUBLIC include ${CMAKE_SOURCE_DIR}/external/cargs/include)
 install(TARGETS commands)
 install(DIRECTORY include/ DESTINATION include/commands)

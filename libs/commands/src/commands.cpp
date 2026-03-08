@@ -18,15 +18,55 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <optional>
 #include <regex>
 
 #include "logger.h"
 
 namespace Leaf
 {
+namespace
+{
+bool isReleaseMode(const commandregistry& registry)
+{
+    return registry.hasOption("release");
+}
+
+std::optional<std::string> getAppOption(const commandregistry& registry)
+{
+    return registry.getOptionValue("app");
+}
+
+std::optional<std::string> getTargetOption(const commandregistry& registry)
+{
+    return registry.getOptionValue("target");
+}
+
+std::string detectDefaultAppName()
+{
+    namespace fs = std::filesystem;
+    std::vector<std::string> apps{};
+    if (fs::exists("apps"))
+    {
+        for (const auto& entry : fs::directory_iterator("apps"))
+        {
+            if (entry.is_directory())
+            {
+                apps.push_back(entry.path().filename().string());
+            }
+        }
+    }
+    if (apps.size() == 1)
+    {
+        return apps.front();
+    }
+    return fs::current_path().filename().string();
+}
+} // namespace
+
 CLI::CLI(std::vector<std::string>&& args)
     : _commands(std::make_unique<commandregistry>(
-          commandregistry(std::move(args),
+          commandregistry(args,
                           []()
                           {
                               fmt::print("🍃 Leaf - A modern C++ project manager.\n");
@@ -81,8 +121,7 @@ CLI::CLI(std::vector<std::string>&& args)
         "Checks your system to ensure all required tools (Clang, CMake,Conan) ",
         [this]() { return this->doctor(); });
     _commands->registerCommands("release",
-                                "Fetches and installs in release mode all the "
-                                "dependencies listed in the conanfile.py.",
+                                "Deprecated alias for `leaf build --release`.",
                                 [this]() { return this->release(); });
     _commands->registerCommands(
         "init",
@@ -139,7 +178,7 @@ int CLI::install()
                                               "-o",
                                               "&:build_app=True"};
     conanInstallArgs.emplace_back("-s");
-    if (std::ranges::find(_commands->getArgs(), "-r") != _commands->getArgs().end())
+    if (isReleaseMode(*_commands))
     {
         conanInstallArgs.emplace_back("build_type=Release");
     }
@@ -367,7 +406,7 @@ int CLI::clean()
     namespace fs = std::filesystem;
     Spinner spin("Running Clean build");
     spin.start();
-    if (std::ranges::find(_commands->getArgs(), "-r") != _commands->getArgs().end())
+    if (isReleaseMode(*_commands))
     {
         if (!fs::exists(".install/Release"))
             install();
@@ -395,14 +434,10 @@ int CLI::clean()
 
 int CLI::release()
 {
+    fmt::println("`leaf release` is deprecated. Use `leaf build --release`.");
     namespace fs = std::filesystem;
-    Spinner spin;
     if (fs::exists("conanfile.txt") || fs::exists("conanfile.py"))
     {
-        spin.setDisplayMessage("Installing deps in release mode");
-        spin.start();
-
-        // Ensure profile exists
         if (!std::filesystem::exists(Utils::getOSProfilePath()))
         {
             generateProfile();
@@ -423,124 +458,69 @@ int CLI::release()
                                                   "tools.cmake.cmaketoolchain:user_presets=",
                                                   "-o",
                                                   "&:build_app=True"};
-        if (0 != EasyProc::ProcessHandler::runExternalProcess(conanInstallArgs))
+        if (EasyProc::ProcessHandler::runExternalProcess(conanInstallArgs) != 0)
         {
             fmt::println("{}", EasyProc::ProcessHandler::getLog());
-        };
-        ;
+            return 1;
+        }
     }
 
-    spin.setDisplayMessage("Generating CMake files");
     if (fs::exists("CMakePresets.json"))
     {
-        if (0 != EasyProc::ProcessHandler::runExternalProcess(
-                     {"cmake", "--preset", "release", "--fresh"}))
+        if (EasyProc::ProcessHandler::runExternalProcess({"cmake", "--preset", "release"}) != 0)
         {
             fmt::println("{}", EasyProc::ProcessHandler::getLog());
-        };
-        ;
+            return 1;
+        }
     }
-    else
-    {
-        if (0 != EasyProc::ProcessHandler::runExternalProcess({"cmake",
-                                                               "-S",
-                                                               ".",
-                                                               "-B",
-                                                               ".build/release",
-                                                               "-G",
-                                                               "Ninja",
-                                                               "-DBUILD_TYPE=Release"}))
-        {
-            fmt::println("{}", EasyProc::ProcessHandler::getLog());
-        };
-        ;
-    }
-    spin.setDisplayMessage("Compiling Project");
-    if (0 != EasyProc::ProcessHandler::runExternalProcess({"cmake", "--build", ".build/release"}))
+    else if (EasyProc::ProcessHandler::runExternalProcess({"cmake",
+                                                           "-S",
+                                                           ".",
+                                                           "-B",
+                                                           ".build/release",
+                                                           "-G",
+                                                           "Ninja",
+                                                           "-DCMAKE_BUILD_TYPE=Release"}) != 0)
     {
         fmt::println("{}", EasyProc::ProcessHandler::getLog());
-    };
-    spin.stop();
+        return 1;
+    }
+
+    if (EasyProc::ProcessHandler::runExternalProcess({"cmake", "--build", ".build/release"}) != 0)
+    {
+        fmt::println("{}", EasyProc::ProcessHandler::getLog());
+        return 1;
+    }
     return 0;
 };
 
 int CLI::addPackage()
 {
-    if (_args.size() <= 2)
+    const auto& package_args = _commands->getPositionals();
+    if (package_args.empty())
     {
-        fmt::println("error: At least one package needs to be provided!");
-        return -1;
+        fmt::println("Usage: leaf addpkg <pkg1> [pkg2] ... [--release]");
+        return 1;
     }
 
-    std::vector<std::pair<std::string, std::string>> packages_to_install;
-    for (size_t i = 2; i < _args.size(); ++i)
+    std::vector<std::string> packages_to_install{};
+    for (const auto& package : package_args)
     {
-        const auto& arg = _args[i];
-        if (arg == "-r")
+        const std::string search_query =
+            package.find('/') == std::string::npos ? package + "/*" : package;
+        if (EasyProc::ProcessHandler::runExternalProcess({"conan", "search", search_query}) != 0)
         {
-            continue; // Skip for now
-        }
-
-        auto        index           = arg.find('/');
-        std::string package_name    = (index != std::string::npos) ? arg.substr(0, index) : arg;
-        std::string package_version = (index != std::string::npos) ? arg.substr(index + 1) : "";
-
-        if (EasyProc::ProcessHandler::runExternalProcess({"conan", "search", arg}) != 0)
-        {
-            fmt::println("error: Failed to search for package '{}'", arg);
+            fmt::println("error: package '{}' was not found in configured conan remotes.", package);
             continue;
         }
-
-        std::string              log = EasyProc::ProcessHandler::getLog();
-        std::regex               pattern(package_name + R"(\/(\d+(?:\.\d+)*))");
-        std::smatch              match;
-        std::vector<std::string> versions;
-        for (std::sregex_iterator it(log.begin(), log.end(), pattern), end; it != end; ++it)
-        {
-            versions.push_back(it->str());
-        }
-
-        if (versions.empty())
-        {
-            fmt::println("error: Could not find any versions for package '{}'", package_name);
-            continue;
-        }
-
-        std::string selected_package;
-        if (versions.size() > 1)
-        {
-            fmt::println("Found multiple versions for package '{}':", package_name);
-            for (size_t j = 0; j < versions.size(); ++j)
-            {
-                fmt::println("{}: {}", j + 1, versions[j]);
-            }
-            fmt::print("Select a version to install (1-{}): ", versions.size());
-            int choice;
-            std::cin >> choice;
-            if (choice > 0 && choice <= versions.size())
-            {
-                selected_package = versions[choice - 1];
-            }
-            else
-            {
-                fmt::println("error: Invalid selection.");
-                continue;
-            }
-        }
-        else
-        {
-            selected_package = versions[0];
-        }
-
-        index           = selected_package.find('/');
-        package_name    = selected_package.substr(0, index);
-        package_version = selected_package.substr(index + 1);
-        packages_to_install.emplace_back(package_name, package_version);
+        const std::string normalized =
+            package.find('/') == std::string::npos ? package + "/[>=0]" : package;
+        packages_to_install.push_back(normalized);
     }
 
     if (packages_to_install.empty())
     {
-        return 0;
+        return 1;
     }
 
     std::vector<std::string> conan_lines;
@@ -570,8 +550,7 @@ int CLI::addPackage()
     {
         for (const auto& pkg : packages_to_install)
         {
-            it = conan_lines.insert(
-                it + 1, fmt::format("        self.requires(\"{}/{}\")", pkg.first, pkg.second));
+            it = conan_lines.insert(it + 1, fmt::format("        self.requires(\"{}\")", pkg));
         }
     }
     else
@@ -1039,147 +1018,138 @@ int CLI::build()
 {
 
     namespace fs = std::filesystem;
+    const bool        release_mode = isReleaseMode(*_commands);
+    const std::string mode         = release_mode ? "release" : "debug";
+    const std::string build_dir    = fmt::format(".build/{}", mode);
+    std::string       app_target{};
+    if (const auto target = getTargetOption(*_commands); target.has_value())
+    {
+        app_target = *target;
+    }
+    else if (const auto app = getAppOption(*_commands); app.has_value())
+    {
+        app_target = *app;
+    }
+    else if (!_commands->getPositionals().empty())
+    {
+        app_target = _commands->getPositionals().front();
+    }
+
+    if (!fs::exists(".install") && (fs::exists("conanfile.txt") || fs::exists("conanfile.py")))
+    {
+        if (install() != 0)
+        {
+            return 1;
+        }
+    }
+
+    Spinner spin("Building project");
+    spin.start();
     if (fs::exists("CMakePresets.json"))
     {
-
-        if (!fs::exists(".install"))
-        {
-            install();
-        };
-        Spinner spin("Building project");
-        spin.start();
-        if (!fs::exists(".build/debug"))
+        if (!fs::exists(build_dir))
         {
             spin.setDisplayMessage("Generating cmake files");
-            if (0 != EasyProc::ProcessHandler::runExternalProcess(
-                         {"cmake", "--preset", "debug", "--fresh"}))
+            if (EasyProc::ProcessHandler::runExternalProcess(
+                    {"cmake", "--preset", mode, "--fresh"}) != 0)
             {
-                fmt::println("{}", EasyProc::ProcessHandler::getLog());
-            };
-            ;
-        }
-        spin.setDisplayMessage("Compiling");
-        if (0 != EasyProc::ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"}))
-        {
-            fmt::println("{}", EasyProc::ProcessHandler::getLog());
-        };
-        spin.stop();
-    }
-    else
-    {
-
-        Spinner spin("Building project");
-        spin.start();
-        if (!fs::exists(".install") && (fs::exists("conanfile.txt") || fs::exists("conanfile.py")))
-        {
-            spin.stop(); // Stop spinner to run install (which has its own spinner)
-            install();
-            spin.start(); // Restart spinner
-
-            // Check if presets were generated
-            if (fs::exists("CMakePresets.json"))
-            {
-                spin.setDisplayMessage("Generating cmake files (using presets)");
-                if (0 != EasyProc::ProcessHandler::runExternalProcess(
-                             {"cmake", "--preset", "debug", "--fresh"}))
-                {
-                    fmt::println("{}", EasyProc::ProcessHandler::getLog());
-                }
-                spin.setDisplayMessage("Compiling");
-                if (0 != EasyProc::ProcessHandler::runExternalProcess(
-                             {"cmake", "--build", ".build/debug"}))
-                {
-                    fmt::println("{}", EasyProc::ProcessHandler::getLog());
-                }
                 spin.stop();
-                return 0;
-            }
-        };
-
-        if (!fs::exists(".build/debug"))
-        {
-            spin.setDisplayMessage("Generating cmake files");
-            if (0 != EasyProc::ProcessHandler::runExternalProcess({"cmake",
-                                                                   "-S",
-                                                                   ".",
-                                                                   "-B",
-                                                                   ".build/debug",
-                                                                   "-G",
-                                                                   "Ninja",
-                                                                   "-DBUILD_TYPE=Debug"}))
-            {
                 fmt::println("{}", EasyProc::ProcessHandler::getLog());
-            };
-            ;
+                return 1;
+            }
         }
-        spin.setDisplayMessage("Compiling");
-        if (0 != EasyProc::ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"}))
-        {
-            fmt::println("{}", EasyProc::ProcessHandler::getLog());
-        };
-        spin.stop();
-    }
-    return 0;
-}
-
-int CLI::compile()
-{
-    Spinner spin("Compiling");
-    spin.start();
-    if (std::ranges::find(_commands->getArgs(), "-r") != _commands->getArgs().end())
-    {
-        spin.setDisplayMessage("Compiling in release mode");
-        if (0 !=
-            EasyProc::ProcessHandler::runExternalProcess({"cmake", "--build", ".build/release"}))
-        {
-            fmt::println("{}", EasyProc::ProcessHandler::getLog());
-        };
-        ;
     }
     else
     {
-        spin.setDisplayMessage("Compiling in debug mode");
-        if (EasyProc::ProcessHandler::runExternalProcess({"cmake", "--build", ".build/debug"}) != 0)
+        if (!fs::exists(build_dir))
         {
-            fmt::println("{}", EasyProc::ProcessHandler::getLog());
-        };
+            spin.setDisplayMessage("Generating cmake files");
+            if (EasyProc::ProcessHandler::runExternalProcess({"cmake",
+                                                              "-S",
+                                                              ".",
+                                                              "-B",
+                                                              build_dir,
+                                                              "-G",
+                                                              "Ninja",
+                                                              fmt::format("-DCMAKE_BUILD_TYPE={}",
+                                                                          release_mode ? "Release"
+                                                                                       : "Debug")}) !=
+                0)
+            {
+                spin.stop();
+                fmt::println("{}", EasyProc::ProcessHandler::getLog());
+                return 1;
+            }
+        }
+    }
+
+    spin.setDisplayMessage("Compiling");
+    std::vector<std::string> build_args{"cmake", "--build", build_dir};
+    if (!app_target.empty())
+    {
+        build_args.push_back("--target");
+        build_args.push_back(app_target);
+    }
+    if (EasyProc::ProcessHandler::runExternalProcess(build_args) != 0)
+    {
+        spin.stop();
+        fmt::println("{}", EasyProc::ProcessHandler::getLog());
+        return 1;
     }
     spin.stop();
     return 0;
 }
 
+int CLI::compile()
+{
+    return build();
+}
+
 int CLI::run()
 {
-    build();
+    if (build() != 0)
+    {
+        return 1;
+    }
     namespace fs = std::filesystem;
 #ifdef _WIN32
     std::string extention = ".exe";
 #else
     std::string extention{};
 #endif
-    if (std::ranges::find(_commands->getArgs(), "-r") != _commands->getArgs().end())
+    std::string appName{};
+    if (const auto target = getTargetOption(*_commands); target.has_value())
     {
-        auto appName = _commands->getArgs().back();
-        if (appName == "-r" || _commands->getArgs().size() <= 2)
-        {
-            appName = fs::current_path().filename().string();
-        }
-        EasyProc::ProcessHandler::runExternalProcess(
-            {fmt::format("./.build/release/apps/{}/{}{}", appName, appName, extention)},
-            false,
-            true);
+        appName = *target;
+    }
+    else if (const auto app = getAppOption(*_commands); app.has_value())
+    {
+        appName = *app;
+    }
+    else if (!_commands->getPositionals().empty())
+    {
+        appName = _commands->getPositionals().front();
     }
     else
     {
-        auto appName = _commands->getArgs().back();
-        if (_commands->getArgs().size() <= 2)
-        {
-            appName = fs::current_path().filename().string();
-        }
-        EasyProc::ProcessHandler::runExternalProcess(
-            {fmt::format("./.build/debug/apps/{}/{}{}", appName, appName, extention)}, false, true);
+        appName = detectDefaultAppName();
     }
 
+    const std::string mode = isReleaseMode(*_commands) ? "release" : "debug";
+    const auto        app_path =
+        fs::path(".build") / mode / "apps" / appName / fmt::format("{}{}", appName, extention);
+    if (!fs::exists(app_path))
+    {
+        fmt::println("App binary not found: {}", app_path.string());
+        fmt::println("Use `leaf run --app <name>` or `leaf run --target <name>`.");
+        return 1;
+    }
+
+    if (EasyProc::ProcessHandler::runExternalProcess({app_path.string()}, false, true) != 0)
+    {
+        fmt::println("{}", EasyProc::ProcessHandler::getLog());
+        return 1;
+    }
     return 0;
 }
 
@@ -1349,25 +1319,293 @@ int CLI::version() const
 }
 int CLI::setupToolChain()
 {
-    // TODO install mingw by default on windows, clang on linux and mac and use
-    // clang and mingw and generate toolchainfile to use mingw(installing libs
-    // (through conan)) and clang(to build project)
-    Downloader::download("mingw", "mingw");
-    // TODO only on windows install msvc if user wants and genenrate toochain file
-    // to use msvc(to install libs through conan) with clang(to build project)
-    Downloader::download("msvc", "msvc");
-    // TODO install conan binary on windows,linux,mac
-    Downloader::download("conan", "conan");
-    // TODO install ninja binary from github for windows,linux,mac
-    Downloader::download("ninja", "ninja");
-    // TODO install cmake binary from github for windows,linux,mac
-    Downloader::download("cmake", "cmake");
-    // TODO generate profiles for android,web and to use clang compiler on
-    // windows,linux,mac
+    auto run = [](const std::vector<std::string>& cmd, bool show_log = true) -> int
+    { return EasyProc::ProcessHandler::runExternalProcess(cmd, false, show_log); };
+
+    auto exists = [](const std::vector<std::string>& probe) -> bool
+    { return EasyProc::ProcessHandler::runExternalProcess(probe, false, false) == 0; };
+
+    auto tryCommands = [&](const std::vector<std::vector<std::string>>& commands) -> bool
+    {
+        for (const auto& cmd : commands)
+        {
+            if (run(cmd) == 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    bool setup_ok = true;
+
+#ifdef _WIN32
+    auto hasArg = [&](const std::string& flag) -> bool
+    { return std::ranges::find(_commands->getArgs(), flag) != _commands->getArgs().end(); };
+
+    const bool use_mingw = hasArg("--mingw") || hasArg("mingw");
+
+    if (use_mingw)
+    {
+        if (!exists({"g++", "--version"}))
+        {
+            fmt::println("Installing MinGW toolchain...");
+            const bool mingw_ok = tryCommands(
+                {{"winget", "install", "--id", "niXman.Mingw", "-e"},
+                 {"choco", "install", "mingw", "-y"},
+                 {"scoop", "install", "mingw"}});
+            setup_ok &= mingw_ok;
+            if (!mingw_ok)
+            {
+                Leaf::Logger::log("Failed to install MinGW toolchain.");
+            }
+        }
+    }
+    else
+    {
+        if (!exists({"cmd", "/c", "where", "cl"}))
+        {
+            fmt::println("Installing MSVC build tools...");
+            const bool msvc_ok = tryCommands(
+                {{"winget",
+                  "install",
+                  "--id",
+                  "Microsoft.VisualStudio.2022.BuildTools",
+                  "-e",
+                  "--override",
+                  "--quiet --wait --norestart --add Microsoft.VisualStudio.Workload.VCTools"},
+                 {"choco", "install", "visualstudio2022buildtools", "-y"}});
+            setup_ok &= msvc_ok;
+            if (!msvc_ok)
+            {
+                Leaf::Logger::log("Failed to install MSVC build tools.");
+            }
+        }
+    }
+
+    if (!exists({"clang", "--version"}))
+    {
+        fmt::println("Installing clang...");
+        const bool clang_ok = tryCommands({{"winget", "install", "--id", "LLVM.LLVM", "-e"},
+                                           {"choco", "install", "llvm", "-y"},
+                                           {"scoop", "install", "llvm"}});
+        setup_ok &= clang_ok;
+        if (!clang_ok)
+        {
+            Leaf::Logger::log("Failed to install clang.");
+        }
+    }
+
+    if (!exists({"cmake", "--version"}))
+    {
+        fmt::println("Installing cmake...");
+        const bool cmake_ok = tryCommands({{"winget", "install", "--id", "Kitware.CMake", "-e"},
+                                           {"choco", "install", "cmake", "-y"},
+                                           {"scoop", "install", "cmake"}});
+        setup_ok &= cmake_ok;
+        if (!cmake_ok)
+        {
+            Leaf::Logger::log("Failed to install cmake.");
+        }
+    }
+
+    if (!exists({"ninja", "--version"}))
+    {
+        fmt::println("Installing ninja...");
+        const bool ninja_ok = tryCommands(
+            {{"winget", "install", "--id", "Ninja-build.Ninja", "-e"},
+             {"choco", "install", "ninja", "-y"},
+             {"scoop", "install", "ninja"}});
+        setup_ok &= ninja_ok;
+        if (!ninja_ok)
+        {
+            Leaf::Logger::log("Failed to install ninja.");
+        }
+    }
+
+    if (!exists({"conan", "--version"}))
+    {
+        fmt::println("Installing conan...");
+        const bool conan_ok = tryCommands(
+            {{"winget",
+              "install",
+              "--id",
+              "Conan.Conan",
+              "-e",
+              "--accept-package-agreements",
+              "--accept-source-agreements"},
+             {"python", "-m", "pip", "install", "--user", "conan"},
+             {"pip", "install", "--user", "conan"}});
+        setup_ok &= conan_ok;
+        if (!conan_ok)
+        {
+            Leaf::Logger::log("Failed to install conan.");
+        }
+    }
+#else
+    const bool has_brew   = exists({"brew", "--version"});
+    const bool has_apt    = exists({"apt-get", "--version"});
+    const bool has_dnf    = exists({"dnf", "--version"});
+    const bool has_pacman = exists({"pacman", "--version"});
+    const bool has_zypper = exists({"zypper", "--version"});
+    const bool has_apk    = exists({"apk", "--version"});
+
+    auto installWithManager = [&](const std::vector<std::string>& packages) -> bool
+    {
+        if (packages.empty())
+        {
+            return true;
+        }
+        if (has_brew)
+        {
+            std::vector<std::string> cmd{"brew", "install"};
+            cmd.insert(cmd.end(), packages.begin(), packages.end());
+            return run(cmd) == 0;
+        }
+        if (has_apt)
+        {
+            run({"sudo", "apt-get", "update"});
+            std::vector<std::string> cmd{"sudo", "apt-get", "install", "-y"};
+            cmd.insert(cmd.end(), packages.begin(), packages.end());
+            return run(cmd) == 0 || [&]()
+            {
+                std::vector<std::string> root_cmd{"apt-get", "install", "-y"};
+                root_cmd.insert(root_cmd.end(), packages.begin(), packages.end());
+                return run(root_cmd) == 0;
+            }();
+        }
+        if (has_dnf)
+        {
+            std::vector<std::string> cmd{"sudo", "dnf", "install", "-y"};
+            cmd.insert(cmd.end(), packages.begin(), packages.end());
+            return run(cmd) == 0 || [&]()
+            {
+                std::vector<std::string> root_cmd{"dnf", "install", "-y"};
+                root_cmd.insert(root_cmd.end(), packages.begin(), packages.end());
+                return run(root_cmd) == 0;
+            }();
+        }
+        if (has_pacman)
+        {
+            std::vector<std::string> cmd{"sudo", "pacman", "-S", "--noconfirm"};
+            cmd.insert(cmd.end(), packages.begin(), packages.end());
+            return run(cmd) == 0 || [&]()
+            {
+                std::vector<std::string> root_cmd{"pacman", "-S", "--noconfirm"};
+                root_cmd.insert(root_cmd.end(), packages.begin(), packages.end());
+                return run(root_cmd) == 0;
+            }();
+        }
+        if (has_zypper)
+        {
+            std::vector<std::string> cmd{"sudo", "zypper", "--non-interactive", "install"};
+            cmd.insert(cmd.end(), packages.begin(), packages.end());
+            return run(cmd) == 0 || [&]()
+            {
+                std::vector<std::string> root_cmd{"zypper", "--non-interactive", "install"};
+                root_cmd.insert(root_cmd.end(), packages.begin(), packages.end());
+                return run(root_cmd) == 0;
+            }();
+        }
+        if (has_apk)
+        {
+            std::vector<std::string> cmd{"sudo", "apk", "add"};
+            cmd.insert(cmd.end(), packages.begin(), packages.end());
+            return run(cmd) == 0 || [&]()
+            {
+                std::vector<std::string> root_cmd{"apk", "add"};
+                root_cmd.insert(root_cmd.end(), packages.begin(), packages.end());
+                return run(root_cmd) == 0;
+            }();
+        }
+        return false;
+    };
+
+#if defined(__APPLE__)
+    if (!exists({"clang", "--version"}) && !exists({"xcrun", "clang", "--version"}))
+    {
+        fmt::println("Installing clang toolchain...");
+        const bool clang_ok = (has_brew && run({"brew", "install", "llvm"}) == 0) ||
+                              run({"xcode-select", "--install"}) == 0;
+        setup_ok &= clang_ok;
+        if (!clang_ok)
+        {
+            Leaf::Logger::log("Failed to install clang toolchain.");
+        }
+    }
+#else
+    if (!exists({"clang", "--version"}))
+    {
+        fmt::println("Installing clang...");
+        const bool clang_ok = installWithManager({"clang"});
+        setup_ok &= clang_ok;
+        if (!clang_ok)
+        {
+            Leaf::Logger::log("Failed to install clang.");
+        }
+    }
+#endif
+
+    if (!exists({"cmake", "--version"}))
+    {
+        fmt::println("Installing cmake...");
+        const bool cmake_ok = installWithManager({"cmake"});
+        setup_ok &= cmake_ok;
+        if (!cmake_ok)
+        {
+            Leaf::Logger::log("Failed to install cmake.");
+        }
+    }
+
+    if (!exists({"ninja", "--version"}))
+    {
+        fmt::println("Installing ninja...");
+        bool ninja_ok = false;
+        if (has_apt)
+        {
+            ninja_ok = installWithManager({"ninja-build"});
+        }
+        else if (has_dnf)
+        {
+            ninja_ok = installWithManager({"ninja-build"});
+        }
+        else
+        {
+            ninja_ok = installWithManager({"ninja"});
+        }
+        setup_ok &= ninja_ok;
+        if (!ninja_ok)
+        {
+            Leaf::Logger::log("Failed to install ninja.");
+        }
+    }
+
+    if (!exists({"conan", "--version"}))
+    {
+        fmt::println("Installing conan...");
+        bool conan_ok = false;
+        if (has_brew)
+        {
+            conan_ok = run({"brew", "install", "conan"}) == 0;
+        }
+        conan_ok = conan_ok || tryCommands({{"pip3", "install", "--user", "conan"},
+                                            {"python3", "-m", "pip", "install", "--user", "conan"},
+                                            {"pip", "install", "--user", "conan"}});
+        setup_ok &= conan_ok;
+        if (!conan_ok)
+        {
+            Leaf::Logger::log("Failed to install conan.");
+        }
+    }
+#endif
+
     this->generateProfile();
-    // TODO ask user to add leaf config into system path
+    if (!setup_ok)
+    {
+        Leaf::Logger::log("Toolchain setup completed with one or more install failures.");
+    }
     Utils::printLeafConfigPath();
-    return 0;
+    return setup_ok ? 0 : 1;
 }
 
 int CLI::exec()
@@ -1524,3 +1762,4 @@ int CLI::generateProfile()
 }
 
 } // namespace Leaf
+
