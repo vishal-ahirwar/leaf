@@ -10,10 +10,13 @@ jobs:
         include:
           - os: windows-latest
             artifact_name: windows
+            conan_profile: windows_profile
           - os: ubuntu-latest
             artifact_name: linux
+            conan_profile: linux_profile
           - os: macos-latest
             artifact_name: macos
+            conan_profile: macos_profile
       
     steps:
       - name: Set up Python
@@ -29,7 +32,7 @@ jobs:
         run: |
           pip install conan
           conan profile detect --force
-          conan install . -of .install -b missing -o "&:build_app=True" -s "&:compiler=clang" -s "&:compiler.version=20" -s compiler.cppstd=20 -s build_type=Release -c tools.cmake.cmaketoolchain:generator=Ninja
+          conan install . -of .install -b missing -pr profiles/${{ matrix.conan_profile }} -o "&:build_app=True" -s build_type=Release
           cmake --preset release
           cmake --build .build/release
       - name: Prepare and zip artifacts
