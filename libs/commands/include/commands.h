@@ -44,8 +44,6 @@ class CLI
 
     int clean();
 
-    int release();
-
     int addPackage();
 
     int removePackage();

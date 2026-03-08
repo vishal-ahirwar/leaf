@@ -121,9 +121,6 @@ CLI::CLI(std::vector<std::string>&& args)
         "doctor",
         "Checks your system to ensure all required tools (Clang, CMake,Conan) ",
         [this]() { return this->doctor(); });
-    _commands->registerCommands("release",
-                                "Deprecated alias for `leaf build --release`.",
-                                [this]() { return this->release(); });
     _commands->registerCommands(
         "init",
         "Initializes a new Leaf project structure within an existing directory.",
@@ -433,67 +430,7 @@ int CLI::clean()
     return 0;
 };
 
-int CLI::release()
-{
-    fmt::println("`leaf release` is deprecated. Use `leaf build --release`.");
-    namespace fs = std::filesystem;
-    if (fs::exists("conanfile.txt") || fs::exists("conanfile.py"))
-    {
-        if (!std::filesystem::exists(Utils::getOSProfilePath()))
-        {
-            generateProfile();
-        }
 
-        std::vector<std::string> conanInstallArgs{"conan",
-                                                  "install",
-                                                  ".",
-                                                  "-of",
-                                                  ".install",
-                                                  "-b",
-                                                  "missing",
-                                                  "-s",
-                                                  "build_type=Release",
-                                                  "-pr",
-                                                  Utils::getOSProfilePath(),
-                                                  "-c",
-                                                  "tools.cmake.cmaketoolchain:user_presets=",
-                                                  "-o",
-                                                  "&:build_app=True"};
-        if (EasyProc::ProcessHandler::runExternalProcess(conanInstallArgs) != 0)
-        {
-            fmt::println("{}", EasyProc::ProcessHandler::getLog());
-            return 1;
-        }
-    }
-
-    if (fs::exists("CMakePresets.json"))
-    {
-        if (EasyProc::ProcessHandler::runExternalProcess({"cmake", "--preset", "release"}) != 0)
-        {
-            fmt::println("{}", EasyProc::ProcessHandler::getLog());
-            return 1;
-        }
-    }
-    else if (EasyProc::ProcessHandler::runExternalProcess({"cmake",
-                                                           "-S",
-                                                           ".",
-                                                           "-B",
-                                                           ".build/release",
-                                                           "-G",
-                                                           "Ninja",
-                                                           "-DCMAKE_BUILD_TYPE=Release"}) != 0)
-    {
-        fmt::println("{}", EasyProc::ProcessHandler::getLog());
-        return 1;
-    }
-
-    if (EasyProc::ProcessHandler::runExternalProcess({"cmake", "--build", ".build/release"}) != 0)
-    {
-        fmt::println("{}", EasyProc::ProcessHandler::getLog());
-        return 1;
-    }
-    return 0;
-};
 
 int CLI::addPackage()
 {
