@@ -26,7 +26,29 @@ Leaf aims to bring the simplicity and power of Cargo to the C++ ecosystem. Just 
 
 ## Installation
 
-### From Source
+### Install with scripts
+
+#### Windows (`install.bat`)
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri https://raw.githubusercontent.com/vishal-ahirwar/leaf/master/install.bat -OutFile install.bat; .\install.bat"
+```
+
+#### macOS / Linux (`install.sh`)
+```bash
+curl -fsSL https://raw.githubusercontent.com/vishal-ahirwar/leaf/master/install.sh | bash
+```
+
+After installation, open a new terminal and verify:
+```bash
+leaf --version
+```
+
+### Build from source
+
+### Prerequisites
+- C++20 compatible compiler ( Clang 19++)
+- CMake 3.20+
+- Conan 2.0+ (for dependency resolution)
 
 #### Using Leaf (Self-bootstrapping)
 ```bash
@@ -41,11 +63,6 @@ git clone https://github.com/vishal-ahirwar/leaf.git
 cd leaf
 python3 build.py
 ```
-
-### Prerequisites
-- C++20 compatible compiler ( Clang 19++)
-- CMake 3.20+
-- Conan 2.0+ (for dependency resolution)
 
 ### Development Tools Generated
 Leaf automatically generates development configuration files:
