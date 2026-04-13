@@ -1678,7 +1678,8 @@ int CLI::generateProfile()
     lines.push_back("tools.system.package_manager:mode=install");
     lines.push_back("tools.system.package_manager:sudo=True");
 #endif
-
+    lines.push_back("[options]");
+    lines.push_back("&:build_app=True");
     std::filesystem::create_directories("profiles");
     std::ofstream out(os_profile);
     if (!out.is_open())
