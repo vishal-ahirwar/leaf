@@ -8,3 +8,5 @@ compiler.version=194
 os=Windows
 &:compiler=clang
 &:compiler.version=21
+[options]
+&:build_app=True

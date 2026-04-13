@@ -52,6 +52,17 @@ def pre_build_checks():
 	
 	print("All required tools are installed. Proceeding with build...")
 
+def getOSProfile():
+	os_name = platform.system()
+	if os_name == "Windows":
+		return "profiles/windows_profile"
+	elif os_name == "Linux":
+		return "profiles/linux_profile"
+	elif os_name == "Darwin":
+		return "profiles/macos_profile"
+	else:
+		print(f"Unsupported operating system: {os_name}")
+		exit(1)
 
 def build_project():
 	print("Building the project...")
@@ -59,7 +70,7 @@ def build_project():
 	
 	system("conan profile detect")
 	
-	if system('conan install . -of .install -b missing -o "&:build_app=True" -s "&:compiler=clang" -s "&:compiler.version=20" -s compiler.cppstd=20 -s build_type=Release -c tools.cmake.cmaketoolchain:generator=Ninja') != 0:
+	if system(f'conan install . -of .install -b missing -pr {getOSProfile()}') != 0:
 		print("Failed to install conan dependencies. Aborting build.")
 		exit(1)
 	
