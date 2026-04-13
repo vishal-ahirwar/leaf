@@ -70,7 +70,7 @@ def build_project():
 	
 	system("conan profile detect")
 	
-	if system(f'conan install . -of .install -b missing -pr {getOSProfile()}') != 0:
+	if system(f'conan install . -of .install -b missing -pr {getOSProfile()} tools.cmake.cmaketoolchain:user_presets=') != 0:
 		print("Failed to install conan dependencies. Aborting build.")
 		exit(1)
 	
