@@ -16,8 +16,8 @@ Leaf aims to bring the simplicity and power of Cargo to the C++ ecosystem. Just 
 
 ## Features
 
--  **Fast project setup** - `leaf new my-project` and you're ready to code
--  **Dependency management** - Add libraries with `leaf add boost fmt spdlog`
+-  **Fast project setup** - `leaf new` and you're ready to code
+-  **Dependency management** - Add libraries with `leaf addpkg boost fmt spdlog`
 -  **Build integration** - Automatic CMake generation and build orchestration
 -  **Registry support** - Access to popular C++ libraries
 -  **Parallel builds** - Multi-threaded compilation for faster builds
@@ -40,9 +40,17 @@ curl -fsSL https://raw.githubusercontent.com/vishal-ahirwar/leaf/master/install.
 
 After installation, open a new terminal and verify:
 ```bash
-leaf --version
+leaf version
 ```
-
+If you want to use mingw, this will setup mingw based toolchain on host os
+```bash
+leaf setup --mingw
+```
+If you want to use clang, this will install all the tools you need to compile your project
+using clang, on windows it will install visual studio build tools too
+```bash
+leaf setup
+```
 ### Build from source
 
 ### Prerequisites
@@ -52,14 +60,14 @@ leaf --version
 
 #### Using Leaf (Self-bootstrapping)
 ```bash
-git clone https://github.com/vishal-ahirwar/leaf.git
+git clone --recursive https://github.com/vishal-ahirwar/leaf.git
 cd leaf
 leaf build  # Uses existing Leaf installation to build itself
 ```
 
 #### Manual CMake Build
 ```bash
-git clone https://github.com/vishal-ahirwar/leaf.git
+git clone --recursive https://github.com/vishal-ahirwar/leaf.git
 cd leaf
 python3 build.py
 ```
@@ -87,12 +95,15 @@ leaf addpkg fmt boost spdlog
 ```bash
 leaf build          # Debug build
 leaf build --release # Release build
+leaf build --target <target>
 ```
 
 ### Run your project
 ```bash
 leaf run
 leaf run --release
+leaf run --target <target>
+leaf run --app <app>
 ```
 
 ### Test your project
@@ -100,92 +111,15 @@ leaf run --release
 leaf test
 ```
 
-## Commands
 
-| Command | Description |
-|---------|-------------|
-| `leaf new <name>` | Create a new C++ project |
-| `leaf init` | Initialize Leaf in an existing project |
-| `leaf add <package>` | Add a dependency |
-| `leaf remove <package>` | Remove a dependency |
-| `leaf build` | Build the project |
-| `leaf run` | Build and run the project |
-| `leaf test` | Run tests |
-| `leaf clean` | Clean build artifacts |
-| `leaf update` | Update dependencies |
-| `leaf search <query>` | Search for packages |
-| `leaf info <package>` | Show package information |
-
-## Configuration
-
-### conanfile.py
-```python
-from conan import ConanFile
-from conan.tools.cmake import cmake_layout, CMakeDeps, CMakeToolchain, CMake
-from conan.tools.files import copy
-
-class MyAwesomeProjectConan(ConanFile):
-    name = "my-awesome-project"
-    version = "1.0.0"
-    description = "An awesome C++ project"
-    author = "Your Name <you@example.com>"
-    license = "MIT"
-    
-    # Package configuration
-    settings = "os", "compiler", "build_type", "arch"
-    options = {
-        "shared": [True, False],
-        "fPIC": [True, False],
-        "with_networking": [True, False],
-        "with_experimental": [True, False]
-    }
-    default_options = {
-        "shared": False,
-        "fPIC": True,
-        "with_networking": True,
-        "with_experimental": False
-    }
-    
-    # Sources are located in the same place as this recipe
-    exports_sources = "CMakeLists.txt", "src/*", "include/*"
-    
-    def requirements(self):
-        self.requires("fmt/10.2.1")
-        self.requires("boost/1.84.0")
-        
-        if self.options.with_networking:
-            self.requires("openssl/3.1.4")
-    
-    def build_requirements(self):
-        self.test_requires("catch2/3.4.0")
-        self.test_requires("benchmark/1.8.3")
-    
-    def layout(self):
-        cmake_layout(self)
-    
-    def generate(self):
-        deps = CMakeDeps(self)
-        deps.generate()
-        
-        tc = CMakeToolchain(self)
-        tc.variables["CMAKE_CXX_STANDARD"] = "20"
-        tc.generate()
-    
-    def build(self):
-        cmake = CMake(self)
-        cmake.configure()
-        cmake.build()
-    
-    def package(self):
-        cmake = CMake(self)
-        cmake.install()
-```
 
 ## Project Structure
 
 Leaf follows a conventional project layout
+
 ## Advanced Usage
 
+# Features you will see in upcoming release
 ### Custom Build Scripts
 ```bash
 # Pre-build script
@@ -225,6 +159,17 @@ leaf build --target wasm32-emscripten
 # The output will be .wasm + .js files ready for web deployment
 ```
 
+#### Packages sharing
+```bash
+leaf publish
+leaf publish --remote <remote>
+```
+
+#### Setup registry for private packages
+```bash
+leaf setup --registry
+leaf serve --registry
+```
 ## Integration with IDEs
 
 ### CLion & Vscode
@@ -240,26 +185,6 @@ With generated development files:
 ## Contributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-### Development Setup
-
-#### Quick Start (Self-bootstrapping)
-```bash
-git clone https://github.com/vishal-ahirwar/leaf.git
-cd leaf
-leaf build   # Development build with debug info
-leaf test          # Run all tests
-```
-
-#### Using CMake Presets
-```bash
-git clone https://github.com/vishal-ahirwar/leaf.git
-cd leaf
-conan install . -of=.install
-# Development build with all tools
-cmake --preset=clang-posix
-cmake --build --preset=clang-posix
-```
 
 #### Development Tools Integration
 The build system automatically configures:
@@ -287,7 +212,7 @@ Generated automatically for perfect LSP integration with any editor.
 ## Roadmap
 
 - [x] **v0.1.0** - Basic project management and dependency resolution
-- [ ] **v0.2.0** - Package registry and publishing
+- [-] **v0.2.0** - Package registry and publishing
 - [ ] **v0.3.0** - Workspace support and multi-project management
 - [ ] **v0.4.0** - IDE integrations and tooling
 - [ ] **v0.5.0** - Cross-compilation and target management
