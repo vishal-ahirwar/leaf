@@ -2,6 +2,7 @@ from os import system
 import platform
 import subprocess
 
+BUILD_TYPE = "Release"
 
 def pre_build_checks():
 	print("Performing pre-build checks...")
@@ -70,7 +71,7 @@ def build_project():
 	
 	system("conan profile detect")
 	
-	if system(f'conan install . -of .install -b missing -pr {getOSProfile()} tools.cmake.cmaketoolchain:user_presets=') != 0:
+	if system(f'conan install . -of .install -b missing -s build_type={BUILD_TYPE} -pr {getOSProfile()} -c tools.cmake.cmaketoolchain:user_presets=') != 0:
 		print("Failed to install conan dependencies. Aborting build.")
 		exit(1)
 	
