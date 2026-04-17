@@ -2,7 +2,7 @@
 set -euo pipefail
 
 LEAF_DIR="${HOME}/leaf"
-LEAF_VERSION="leafv0.2.2"
+LEAF_VERSION="leafv0.2.3"
 BASE_URL="https://github.com/vishal-ahirwar/leaf/releases/download/${LEAF_VERSION}"
 
 require_cmd() {

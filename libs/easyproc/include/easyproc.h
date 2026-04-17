@@ -6,13 +6,13 @@ namespace EasyProc
 
 class ProcessHandler
 {
-    inline static std::string log{};
+    inline static std::string _log{};
 
   public:
-    static int                runExternalProcess(const std::vector<std::string>& args,
-                                                 bool                            captureStdOutStdErr = true,
-                                                 bool                            showLog = false);
-    static const std::string& getLog();
+    static int runExternalProcess(const std::vector<std::string>& args,
+                                  bool                            captureStdOutStdErr = true,
+                                  bool                            showLog = false);
+    static std::string getLog();
 };
 
 } // namespace EasyProc

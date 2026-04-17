@@ -9,6 +9,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -28,49 +29,47 @@ class CLI
     int exec();
 
   protected:
-    int generateProfile();
 
-    int install();
+    bool                       isReleaseMode() const;
+    std::optional<std::string> getAppOption() const;
+    std::optional<std::string> getTargetOption() const;
+    std::string                detectDefaultAppName() const;
 
-    int create();
-
-    int publish();
-
-    int upload();
-
-    int runTests();
-
-    int format();
-
+    // ── Build commands (build_commands.cpp) ──
+    int build();
+    int compile();
+    int run();
     int clean();
 
-    int addPackage();
 
-    int removePackage();
-
+    int create();
+    int init();
     int addApp();
-
     int addLib();
 
+    int install();
+    int addPackage();
+    int removePackage();
+    int publish();
+    int upload();
+
+
     int doctor();
+    int format();
+    int setupToolChain();
+    int generateProfile();
+    int runTests();
+    int generateDocs();
+    int startLeafUpdater();
 
-    int build();
+  
+    int search();
+    int info();
+    int depTree();
 
-    int compile();
-
-    int run();
-
-    int init();
 
     int help();
-
-    int generateDocs();
-
     int version() const;
-
-    int setupToolChain();
-
-    int startLeafUpdater();
 };
 } // namespace Leaf
 

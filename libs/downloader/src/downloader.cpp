@@ -47,7 +47,7 @@ void download(const std::string& url, const std::string& outputFilePath)
 
     cpr::Response response =
         cpr::Get(cpr::Url{url},
-                 cpr::VerifySsl(false),
+                 cpr::VerifySsl(true),
                  cpr::ReserveSize{1024 * 1024 * 8},
                  cpr::ProgressCallback(
                      [&](cpr::cpr_off_t download_total,
@@ -103,7 +103,7 @@ void downloadGithubDirectory(const std::string& owner,
 
     // 2. Make the API request
     cpr::Response r = cpr::Get(
-        cpr::Url{apiUrl}, cpr::VerifySsl(false), cpr::Header{{"User-Agent", "C++ Downloader"}});
+        cpr::Url{apiUrl}, cpr::VerifySsl(true), cpr::Header{{"User-Agent", "C++ Downloader"}});
 
     if (r.status_code != 200)
     {
