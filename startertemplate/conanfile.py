@@ -16,7 +16,7 @@ class %APPNAME%Conan(ConanFile):
         "build_app": False
     }
     # Make sure to export ALL necessary source code.
-    exports_sources = "CMakeLists.txt", "app/*", "libs/*","cmake/*"
+    exports_sources = "CMakeLists.txt", "libs/*","cmake/*"
     
     def requirements(self):
         #self.requires("Libname/version")

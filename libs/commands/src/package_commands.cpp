@@ -435,7 +435,7 @@ int CLI::addPackage()
 
     
     fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green),
-               "\n🎯 Found build targets:\n");
+               "\n Found build targets:\n");
     for (size_t i = 0; i < project_targets.size(); ++i)
     {
         fmt::println("  [{}] {} ({}) — {}",

@@ -4,6 +4,7 @@
 #include <fmt/core.h>
 
 #include <algorithm>
+#include <cstdlib>
 #include <iostream>
 #include <iterator>
 #include <mutex>
@@ -28,10 +29,28 @@ int ProcessHandler::runExternalProcess(const std::vector<std::string>& args,
                                        bool                            captureStdOutStdErr,
                                        bool                            showLog)
 {
+
+    if(showLog)
+    {
+        std::string cmd_line;
+        for (const auto& arg : args)
+        {
+            if (arg.find(' ') != std::string::npos)
+            {
+                cmd_line += fmt::format("\"{}\" ", arg);
+            }
+            else
+            {
+                cmd_line += arg + " ";
+            }
+        }
+        return std::system(cmd_line.c_str());
+    }
     reproc::process process;
     reproc::options options;
     options.redirect.parent   = showLog;
     options.redirect.err.type = reproc::redirect::pipe;
+    options.redirect.in.type  = reproc::redirect::pipe;
     auto ec                   = process.start(args, options);
     if (ec == std::errc::no_such_file_or_directory)
     {

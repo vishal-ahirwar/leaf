@@ -536,11 +536,6 @@ int CLI::generateProfile()
     }
 #endif
 
-    if (!hasLine("[options]"))
-    {
-        lines.push_back("[options]");
-        lines.push_back("&:build_app=True");
-    }
 
     std::filesystem::create_directories("profiles");
     std::ofstream out(os_profile);
