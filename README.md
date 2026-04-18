@@ -1,9 +1,6 @@
 # 🍃 Leaf
 
 A modern, fast, and intuitive package manager for C++ - inspired by Cargo for Rust.
-
-<img width="988" height="547" alt="Screenshot 2025-10-13 051016" src="https://github.com/user-attachments/assets/603bf77f-8158-4163-b238-eb2ea29982f3" />
-
 ## Overview
 
 Leaf aims to bring the simplicity and power of Cargo to the C++ ecosystem. Just like how Cargo revolutionized Rust development, Leaf streamlines C++ project management with:
@@ -207,12 +204,16 @@ Index:
 ```
 
 **compile_commands.json**
+
 Generated automatically for perfect LSP integration with any editor.
+
+<img width="988" height="547" alt="image" src="https://github.com/user-attachments/assets/210799f6-459a-4583-b4ec-2a9fae353e61" />
+<img width="988" height="547" alt="image" src="https://github.com/user-attachments/assets/a5f0edd7-68f1-42fe-8c76-30f4aea15991" />
 
 ## Roadmap
 
 - [x] **v0.1.0** - Basic project management and dependency resolution
-- [-] **v0.2.0** - Package registry and publishing
+- [x] **v0.2.0** - Package registry and publishing
 - [ ] **v0.3.0** - Workspace support and multi-project management
 - [ ] **v0.4.0** - IDE integrations and tooling
 - [ ] **v0.5.0** - Cross-compilation and target management
