@@ -156,6 +156,11 @@ CLI::CLI(std::vector<std::string>&& args)
         "tree",
         "Display the dependency tree of the current project.",
         [this]() -> int { return this->depTree(); });
+
+    _commands->registerCommands(
+        "server",
+        "Manage a lightweight Leaf package server for hosting Conan packages.",
+        [this]() -> int { return this->server(); });
 };
 
 

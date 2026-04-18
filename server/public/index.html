@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leaf Package Manager</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Application Header -->
+  <header class="header">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <div class="brand">
+        <!-- Leaf Logo -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
+          <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
+        </svg>
+        Leaf Private Package Registry
+      </div>
+
+      <!-- Search Section -->
+      <div id="searchContainer" class="search-bar hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="searchInput" class="search-input" placeholder="Search components globally...">
+      </div>
+
+      <div class="header-actions">
+        <!-- Developer Profile Button -->
+        <button id="userContextBtn" class="icon-btn hidden" aria-label="Authenticaion Keys">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </button>
+        <button id="themeToggle" class="icon-btn" aria-label="Toggle theme">
+          <!-- Theme Icon injected via JS -->
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container flex-1">
+    
+    <!-- Login Panel -->
+    <section id="loginPanel" class="panel hidden">
+      <div class="login-wrapper">
+        <div class="card">
+          <div class="text-center" style="margin-bottom: 32px;">
+            <h1>Administration</h1>
+            <p>Enter your configuration credentials</p>
+          </div>
+          <div class="login-body">
+            <div class="form-group">
+              <label class="form-label" for="usernameInput">User Configuration</label>
+              <input type="text" id="usernameInput" class="form-input" placeholder="admin" value="admin">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="passwordInput">Secret Key</label>
+              <input type="password" id="passwordInput" class="form-input" placeholder="Enter configuration key">
+            </div>
+            <button id="loginBtn" class="btn btn-primary">
+              Access Repository
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dashboard Panel -->
+    <section id="dashboardPanel" class="panel hidden">
+      <div class="dashboard-grid">
+        <!-- Top Stats Row -->
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <!-- Book / Recipe Icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            </div>
+            <div>
+              <div id="countRecipes" class="stat-value">0</div>
+              <div class="stat-label">Total Recipes</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <!-- Revisions Icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><line x1="3" y1="12" x2="9" y2="12"></line><line x1="15" y1="12" x2="21" y2="12"></line></svg>
+            </div>
+            <div>
+              <div id="countRevisions" class="stat-value">0</div>
+              <div class="stat-label">Total Revisions</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <!-- Packages Icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+            </div>
+            <div>
+              <div id="countPackages" class="stat-value">0</div>
+              <div class="stat-label">Binaries Stored</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Table -->
+        <div class="main-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Component Registry</h2>
+              <div class="server-url" id="remoteUrl">Loading node binding...</div>
+            </div>
+            <button id="refreshBtn" class="btn btn-secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+              Synchronize
+            </button>
+          </div>
+          <div class="table-container">
+            <table id="mainTable">
+              <thead>
+                <tr>
+                  <th style="width: 50%;">Package Reference</th>
+                  <th style="width: 25%;">Revisions Held</th>
+                  <th style="width: 25%;">Latest Update</th>
+                </tr>
+              </thead>
+              <tbody id="recipesTableBody">
+                <!-- Data goes here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Sticky Footer absolute bottom margin layout push -->
+  <footer class="app-footer">
+    &copy; 2026 Vishal Ahirwar. All rights reserved.
+  </footer>
+
+  <!-- User Token Details Modal -->
+  <div id="userModal" class="overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Client Authentication</h2>
+        <button id="closeUserModal" class="icon-btn"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+      </div>
+      <p class="muted" style="margin-bottom: 24px;">This server uses JSON Web Token access via the Conan Client. Below is your raw administrative token obtained from the <code>/v1/users/authenticate</code> endpoint.</p>
+      <div class="form-group">
+        <label class="form-label">Active Bearer Token</label>
+        <div id="userTokenBox" class="code-block">Loading...</div>
+      </div>
+      <button id="logoutBtn" class="btn btn-secondary danger-outline" style="width:100%; justify-content:center; margin-top:16px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        Sign Out and Forfeit Local State
+      </button>
+    </div>
+  </div>
+
+  <!-- Globals -->
+  <div id="loginStatus" class="status-banner hidden">
+    <span id="statusMsg"></span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

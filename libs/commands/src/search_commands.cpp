@@ -1,6 +1,4 @@
-//
-// NEW premium commands: search, info, depTree
-//
+
 
 #include "commands.h"
 
@@ -162,22 +160,15 @@ int CLI::info()
 
     if (result == 0)
     {
-        std::string log = EasyProc::ProcessHandler::getLog();
+        std::string        log = EasyProc::ProcessHandler::getLog();
         std::istringstream stream(log);
         std::string        line;
-        bool               in_target_pkg = false;
 
         while (std::getline(stream, line))
         {
             std::string trimmed = Utils::trim(line);
             if (trimmed.empty())
                 continue;
-
-            // Highlight the target package section
-            if (trimmed.find(package) != std::string::npos && trimmed.find("ref:") != std::string::npos)
-            {
-                in_target_pkg = true;
-            }
 
             // Highlight keys (lines with colons)
             auto colon_pos = trimmed.find(':');

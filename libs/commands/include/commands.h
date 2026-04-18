@@ -35,7 +35,6 @@ class CLI
     std::optional<std::string> getTargetOption() const;
     std::string                detectDefaultAppName() const;
 
-    // ── Build commands (build_commands.cpp) ──
     int build();
     int compile();
     int run();
@@ -66,6 +65,8 @@ class CLI
     int search();
     int info();
     int depTree();
+
+    int server();
 
 
     int help();

@@ -25,6 +25,7 @@ class LeafConan(ConanFile):
         self.requires("nlohmann_json/3.12.0")
         self.requires("pystring/1.1.4")
         self.requires("platformfolders/4.3.0")
+        self.requires("cpp-httplib/0.39.0")
         if self.options.build_app:  # Only for the app
             self.requires("gtest/1.17.0")
 
