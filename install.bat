@@ -2,7 +2,7 @@
 setlocal
 
 set "LEAF_DIR=%USERPROFILE%\leaf"
-set "DOWNLOAD_URL_LEAF=https://github.com/vishal-ahirwar/leaf/releases/download/leafv0.2.3/leaf-windows.zip"
+set "DOWNLOAD_URL_LEAF=https://github.com/vishal-ahirwar/leaf/releases/latest/download/leaf-windows.zip"
 set "ZIP_PATH=%LEAF_DIR%\leaf.zip"
 set "PS=powershell -NoProfile -ExecutionPolicy Bypass -Command"
 

@@ -2,8 +2,7 @@
 set -euo pipefail
 
 LEAF_DIR="${HOME}/leaf"
-LEAF_VERSION="leafv0.2.3"
-BASE_URL="https://github.com/vishal-ahirwar/leaf/releases/download/${LEAF_VERSION}"
+BASE_URL="github.com/vishal-ahirwar/leaf/releases/latest/download/"
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
