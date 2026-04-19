@@ -30,7 +30,7 @@ int CLI::doctor()
     Spinner spin("Checking required Toolchain");
     spin.start();
 
-    std::vector<std::string> tools{"clang", "cmake", "ninja", "conan"};
+    std::vector<std::string> tools{"clang", "cmake", "ninja", "conan","ccache"};
     bool                     allToolsInstalled = true;
 
     for (const auto& tool : tools)
@@ -322,6 +322,7 @@ int CLI::setupToolChain()
         return false;
     };
 
+    //WTF  is going on hereeeeeeeeeeeeeeeee TODO : FIX THISSSSSS
 #if defined(__APPLE__)
     if (!exists({"clang", "--version"}) && !exists({"xcrun", "clang", "--version"}))
     {
@@ -480,6 +481,10 @@ int CLI::generateProfile()
         Logger::error("Failed to get clang compiler info.");
         return 1;
     }
+
+    //TODO  append [conf] options for setting build_app directly in profiles
+    //TODO and use modified profile(temp generated from profile) just remove [confi] options
+    //TODO from temp profile generated when creating package and delete (or store in .profiles directory) them after package published
 
     std::string              log{EasyProc::ProcessHandler::getLog()};
     std::vector<std::string> clang_logs_lines{};
