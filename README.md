@@ -79,7 +79,7 @@ Leaf automatically generates development configuration files:
 
 ### Create a new project
 ```bash
-leaf new hello-world
+leaf new
 cd hello-world
 ```
 
@@ -105,7 +105,7 @@ leaf run --app <app>
 
 ### Test your project
 ```bash
-leaf test
+leaf tests
 ```
 
 
@@ -145,27 +145,30 @@ leaf build --target x86_64-pc-windows-msvc
 #### Android Cross-compilation Setup
 ```bash
 # Build for Android
-leaf build --target android-arm64
+leaf setup --target android-arm64
 ```
 
 #### Web/WASM Compilation Setup  
 ```bash
 # Build for Web
+leaf setup --target wasm32-emscripten
 leaf build --target wasm32-emscripten
-
 # The output will be .wasm + .js files ready for web deployment
 ```
 
 #### Packages sharing
 ```bash
+leaf server add leaf-server <ipaddress>:<port>
 leaf publish
-leaf publish --remote <remote>
+leaf upload
+or
+leaf upload  --remote <remote>
 ```
 
 #### Setup registry for private packages
 ```bash
-leaf setup --registry
-leaf serve --registry
+leaf server init
+leaf server start
 ```
 ## Integration with IDEs
 
