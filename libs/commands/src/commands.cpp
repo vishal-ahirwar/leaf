@@ -10,9 +10,9 @@
 #include <leafconfig.h>
 #include <utils.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <map>
-
 namespace Leaf
 {
 
