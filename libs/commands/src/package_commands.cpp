@@ -2,8 +2,6 @@
 // Package management: install, addPackage (REWRITTEN), removePackage, publish, upload
 //
 
-#include "commands.h"
-
 #include <easyproc.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
@@ -19,6 +17,7 @@
 #include <string>
 #include <vector>
 
+#include "commands.h"
 #include "logger.h"
 
 namespace Leaf
@@ -26,7 +25,6 @@ namespace Leaf
 
 namespace
 {
-
 
 struct ConanCMakeInfo
 {
@@ -42,15 +40,14 @@ struct ProjectTarget
     std::string cmake_path; // e.g. "libs/commands/CMakeLists.txt"
 };
 
-
 std::vector<ConanCMakeInfo> resolveCMakeInfo(const std::vector<std::string>& pkg_base_names,
                                              bool                            release_mode)
 {
     namespace fs = std::filesystem;
     std::vector<ConanCMakeInfo> results;
 
-    const std::string gen_dir = release_mode ? ".install/build/Release/generators"
-                                             : ".install/build/Debug/generators";
+    const std::string gen_dir =
+        release_mode ? ".install/build/Release/generators" : ".install/build/Debug/generators";
 
     for (const auto& pkg : pkg_base_names)
     {
@@ -68,7 +65,7 @@ std::vector<ConanCMakeInfo> resolveCMakeInfo(const std::vector<std::string>& pkg
             {
                 if (!entry.is_regular_file())
                     continue;
-                std::string fname = entry.path().filename().string();
+                std::string fname       = entry.path().filename().string();
                 std::string fname_lower = fname;
                 std::transform(
                     fname_lower.begin(), fname_lower.end(), fname_lower.begin(), ::tolower);
@@ -113,7 +110,7 @@ std::vector<ConanCMakeInfo> resolveCMakeInfo(const std::vector<std::string>& pkg
             {
                 if (!entry.is_regular_file())
                     continue;
-                std::string fname = entry.path().filename().string();
+                std::string fname       = entry.path().filename().string();
                 std::string fname_lower = fname;
                 std::transform(
                     fname_lower.begin(), fname_lower.end(), fname_lower.begin(), ::tolower);
@@ -159,7 +156,6 @@ std::vector<ConanCMakeInfo> resolveCMakeInfo(const std::vector<std::string>& pkg
     return results;
 }
 
-
 std::vector<ProjectTarget> discoverProjectTargets()
 {
     namespace fs = std::filesystem;
@@ -179,7 +175,7 @@ std::vector<ProjectTarget> discoverProjectTargets()
 
             std::ifstream file(cmake_path.string());
             std::string   content((std::istreambuf_iterator<char>(file)),
-                                std::istreambuf_iterator<char>());
+                                  std::istreambuf_iterator<char>());
 
             std::regex  exe_regex(R"(add_executable\s*\(\s*(\w+))");
             std::regex  lib_regex(R"(add_library\s*\(\s*(\w+))");
@@ -200,7 +196,6 @@ std::vector<ProjectTarget> discoverProjectTargets()
     scanDir("libs");
     return targets;
 }
-
 
 void addFindPackageToFile(const std::string& cmake_path, const std::string& cmake_find_name)
 {
@@ -245,7 +240,6 @@ void addFindPackageToFile(const std::string& cmake_path, const std::string& cmak
     for (const auto& l : lines)
         out << l << "\n";
 }
-
 
 void addTargetLinkToFile(const std::string&              cmake_path,
                          const std::string&              target_name,
@@ -324,7 +318,6 @@ int CLI::install()
     return 0;
 }
 
-
 int CLI::addPackage()
 {
     const auto& package_args = _commands->getPositionals();
@@ -334,7 +327,6 @@ int CLI::addPackage()
         return 1;
     }
 
-   
     std::vector<std::string> packages_to_install;
     std::vector<std::string> pkg_base_names;
 
@@ -362,7 +354,6 @@ int CLI::addPackage()
     if (packages_to_install.empty())
         return 1;
 
-    
     std::vector<std::string> conan_lines;
     {
         std::ifstream in("conanfile.py");
@@ -404,7 +395,6 @@ int CLI::addPackage()
             out << line << std::endl;
     }
 
-  
     Leaf::Logger::info("Installing dependencies...");
     if (install() != 0)
     {
@@ -412,17 +402,14 @@ int CLI::addPackage()
         return -1;
     }
 
-
     auto cmake_infos = resolveCMakeInfo(pkg_base_names, isReleaseMode());
-
 
     auto project_targets = discoverProjectTargets();
 
     if (project_targets.empty())
     {
-        Leaf::Logger::warn(
-            "No build targets found in apps/ or libs/. "
-            "You will need to manually update your CMakeLists.txt files.");
+        Leaf::Logger::warn("No build targets found in apps/ or libs/. "
+                           "You will need to manually update your CMakeLists.txt files.");
         fmt::println("\nAdd these to your CMakeLists.txt:");
         for (const auto& info : cmake_infos)
         {
@@ -433,7 +420,6 @@ int CLI::addPackage()
         return 0;
     }
 
-    
     fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green),
                "\n Found build targets:\n");
     for (size_t i = 0; i < project_targets.size(); ++i)
@@ -444,7 +430,6 @@ int CLI::addPackage()
                      project_targets[i].type,
                      project_targets[i].cmake_path);
     }
-
 
     for (const auto& cmake_info : cmake_infos)
     {
@@ -495,7 +480,6 @@ int CLI::addPackage()
             }
         }
 
-       
         for (size_t idx : selected)
         {
             const auto& target = project_targets[idx];
@@ -509,7 +493,6 @@ int CLI::addPackage()
     Leaf::Logger::success("Packages added successfully.");
     return 0;
 }
-
 
 int CLI::removePackage()
 {
@@ -560,7 +543,6 @@ int CLI::removePackage()
             out << l << "\n";
     }
 
-   
     if (install() != 0)
         return -1;
 
@@ -617,15 +599,14 @@ int CLI::removePackage()
     return 0;
 }
 
-
-
 int CLI::publish()
 {
     Spinner spin("Creating Package");
     spin.start();
-    if (0 !=
-        EasyProc::ProcessHandler::runExternalProcess(
-            {"conan", "create", ".", "-b", "missing", "-pr", Utils::getOSProfilePath()}))
+    if (0 != EasyProc::ProcessHandler::runExternalProcess(
+                 {"conan", "create", ".", "-b", "missing", "-pr", Utils::getOSProfilePath()},
+                 false,
+                 true))
     {
         fmt::println("{}", EasyProc::ProcessHandler::getLog());
     }
@@ -633,27 +614,35 @@ int CLI::publish()
     return 0;
 }
 
-
 int CLI::upload()
 {
     const auto& positionals = _commands->getPositionals();
     if (positionals.empty())
     {
-        fmt::println("Usage: leaf upload <package_pattern> -r <remote>");
-        return 1;
+        fmt::println("Use: leaf upload <package_pattern> -r <remote>");
     }
 
-    std::vector<std::string> conanArgs = {"conan", "upload"};
-    conanArgs.insert(conanArgs.end(), positionals.begin(), positionals.end());
+    std::string pattern{};
+    std::string remote{};
 
     for (size_t i = 2; i < _args.size(); ++i)
     {
-        const auto& arg = _args[i];
-        if (arg.starts_with("-"))
-            conanArgs.push_back(arg);
+        if ((_args[i] == "-r" || _args[i] == "--remote") && _args.size() > i + 1)
+        {
+            remote = _args[i + 1];
+        }
+        if ((_args[i] == "-p" || _args[i] == "--pattern") && _args.size() > i + 1)
+        {
+            pattern = _args[i + 1];
+        }
     }
-
-    if (EasyProc::ProcessHandler::runExternalProcess(conanArgs) != 0)
+    namespace fs = std::filesystem;
+    if (remote.empty())
+        remote = "leaf-server";
+    if (pattern.empty())
+        pattern = fs::current_path().filename().string();
+    std::vector<std::string> conanArgs = {"conan", "upload", pattern, "-r", remote, "-c"};
+    if (EasyProc::ProcessHandler::runExternalProcess(conanArgs, false, true) != 0)
     {
         Leaf::Logger::error("Upload failed.");
         fmt::println("{}", EasyProc::ProcessHandler::getLog());

@@ -1,9 +1,9 @@
 #include "server.h"
 
 #include <WebAssets.h>
+#include <cpp-embedlib-httplib.h>
 #include <httplib.h>
-#include<cpp-embedlib-httplib.h>
-#include <iostream>
+
 #include <algorithm>
 #include <cctype>
 #include <chrono>
@@ -1543,7 +1543,6 @@ int run(int argc, char** argv)
     std::optional<std::string> host_override;
     std::optional<int>         port_override;
 
-    
     for (int i = 1; i < argc; ++i)
     {
         const std::string arg = argv[i];
@@ -1653,8 +1652,8 @@ int run(int argc, char** argv)
         });
     add_recipe_routes(app, storage, auth);
 
-    httplib::mount(app, Web::FS); 
-    
+    httplib::mount(app, Web::FS);
+
     app.set_error_handler(
         [](const httplib::Request&, httplib::Response& res)
         {

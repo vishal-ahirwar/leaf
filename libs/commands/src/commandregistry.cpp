@@ -4,8 +4,9 @@
 
 #include "commandregistry.h"
 
-#include <cargs/cargs.hpp>
 #include <fmt/color.h>
+
+#include <cargs/cargs.hpp>
 
 namespace Leaf
 {

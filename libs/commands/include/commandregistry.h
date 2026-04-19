@@ -16,26 +16,23 @@ namespace Leaf
 class commandregistry
 {
 
-    std::unordered_map<std::string,
-                       std::pair<std::string, std::function<int()>>>
-        _commands{};
+    std::unordered_map<std::string, std::pair<std::string, std::function<int()>>> _commands{};
 
-    std::vector<std::string> _args{};
-    std::string              _parsedCommand{};
-    std::vector<std::string> _positionals{};
+    std::vector<std::string>                                  _args{};
+    std::string                                               _parsedCommand{};
+    std::vector<std::string>                                  _positionals{};
     std::unordered_map<std::string, std::vector<std::string>> _options{};
 
     std::function<void(void)> _default{};
 
-public:
+  public:
     commandregistry() = delete;
     commandregistry(const std::vector<std::string>& args, std::function<void(void)> default_func)
         : _args(args), _default(default_func) {};
-    const std::unordered_map<std::string,
-                             std::pair<std::string, std::function<int()>>>&
+    const std::unordered_map<std::string, std::pair<std::string, std::function<int()>>>&
                                     getCommands() const;
-    void                            registerCommands(std::string&&              command,
-                                                     std::string&&              description,
+    void                            registerCommands(std::string&&                   command,
+                                                     std::string&&                   description,
                                                      const std::function<int(void)>& callable);
     const std::string&              getCommand() const;
     const std::vector<std::string>& getPositionals() const;

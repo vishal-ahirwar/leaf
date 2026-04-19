@@ -16,7 +16,6 @@
 namespace Leaf
 {
 
-
 bool CLI::isReleaseMode() const
 {
     return _commands->hasOption("release");
@@ -52,8 +51,6 @@ std::string CLI::detectDefaultAppName() const
     }
     return fs::current_path().filename().string();
 }
-
-
 
 CLI::CLI(std::vector<std::string>&& args)
     : _commands(std::make_unique<commandregistry>(
@@ -121,9 +118,9 @@ CLI::CLI(std::vector<std::string>&& args)
     _commands->registerCommands(
         "addpkg", "Add external library to your project.", [this]() { return this->addPackage(); });
 
-    _commands->registerCommands(
-        "remove", "Remove a package dependency from your project.",
-        [this]() { return this->removePackage(); });
+    _commands->registerCommands("remove",
+                                "Remove a package dependency from your project.",
+                                [this]() { return this->removePackage(); });
 
     _commands->registerCommands("docs",
                                 "Generate docs for your project using doxygen.",
@@ -141,28 +138,23 @@ CLI::CLI(std::vector<std::string>&& args)
         "Check for leaf updates and download the latest version from GitHub.",
         [this]() -> int { return this->startLeafUpdater(); });
 
-   
-    _commands->registerCommands(
-        "search",
-        "Search for packages in the Conan package registry.",
-        [this]() -> int { return this->search(); });
+    _commands->registerCommands("search",
+                                "Search for packages in the Conan package registry.",
+                                [this]() -> int { return this->search(); });
 
-    _commands->registerCommands(
-        "info",
-        "Display detailed information about a specific package.",
-        [this]() -> int { return this->info(); });
+    _commands->registerCommands("info",
+                                "Display detailed information about a specific package.",
+                                [this]() -> int { return this->info(); });
 
-    _commands->registerCommands(
-        "tree",
-        "Display the dependency tree of the current project.",
-        [this]() -> int { return this->depTree(); });
+    _commands->registerCommands("tree",
+                                "Display the dependency tree of the current project.",
+                                [this]() -> int { return this->depTree(); });
 
     _commands->registerCommands(
         "server",
         "Manage a lightweight Leaf package server for hosting Conan packages.",
         [this]() -> int { return this->server(); });
 };
-
 
 int CLI::exec()
 {

@@ -20,7 +20,7 @@
 
 #include "commands.h"
 #include "logger.h"
-#include"server.h"
+#include "server.h"
 
 namespace Leaf
 {
@@ -87,9 +87,12 @@ int CLI::server()
         {
             port = positionals[1];
         }
-        auto argc=_args.size();
-        std::vector<char*>argv;
-        std::for_each(_args.begin(), _args.end(), [&argv](const std::string& arg) { argv.push_back(const_cast<char*>(arg.c_str())); });
+        auto               argc = _args.size();
+        std::vector<char*> argv;
+        std::for_each(_args.begin(),
+                      _args.end(),
+                      [&argv](const std::string& arg)
+                      { argv.push_back(const_cast<char*>(arg.c_str())); });
         argv.push_back(nullptr);
         return server::run(argc, argv.data());
     }

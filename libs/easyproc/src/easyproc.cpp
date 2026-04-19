@@ -30,7 +30,7 @@ int ProcessHandler::runExternalProcess(const std::vector<std::string>& args,
                                        bool                            showLog)
 {
 
-    if(showLog)
+    if (showLog)
     {
         std::string cmd_line;
         for (const auto& arg : args)

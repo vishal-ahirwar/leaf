@@ -29,7 +29,6 @@ class CLI
     int exec();
 
   protected:
-
     bool                       isReleaseMode() const;
     std::optional<std::string> getAppOption() const;
     std::optional<std::string> getTargetOption() const;
@@ -39,7 +38,6 @@ class CLI
     int compile();
     int run();
     int clean();
-
 
     int create();
     int init();
@@ -52,7 +50,6 @@ class CLI
     int publish();
     int upload();
 
-
     int doctor();
     int format();
     int setupToolChain();
@@ -61,13 +58,11 @@ class CLI
     int generateDocs();
     int startLeafUpdater();
 
-  
     int search();
     int info();
     int depTree();
 
     int server();
-
 
     int help();
     int version() const;

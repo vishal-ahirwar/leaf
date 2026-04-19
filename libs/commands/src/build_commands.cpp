@@ -2,8 +2,6 @@
 // Build, compile, run, and clean command implementations
 //
 
-#include "commands.h"
-
 #include <easyproc.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
@@ -13,6 +11,7 @@
 #include <filesystem>
 #include <optional>
 
+#include "commands.h"
 #include "logger.h"
 
 namespace Leaf

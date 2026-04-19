@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 3.6...3.31)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(tools.config)
-project(leaf VERSION 0.2.3 LANGUAGES CXX C)
+project(leaf VERSION 0.2.4 LANGUAGES CXX C)
 include(app.config)
 if(BUILD_APPLICATION)
     add_subdirectory(external/spinner)

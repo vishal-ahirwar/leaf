@@ -1,7 +1,5 @@
 
 
-#include "commands.h"
-
 #include <easyproc.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
@@ -16,11 +14,11 @@
 #include <string>
 #include <vector>
 
+#include "commands.h"
 #include "logger.h"
 
 namespace Leaf
 {
-
 
 int CLI::search()
 {
@@ -33,9 +31,8 @@ int CLI::search()
         return 1;
     }
 
-    const std::string query = positionals.front();
-    const std::string search_pattern =
-        query.find('*') != std::string::npos ? query : query + "*";
+    const std::string query          = positionals.front();
+    const std::string search_pattern = query.find('*') != std::string::npos ? query : query + "*";
 
     fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green),
                "\n🔍 Searching for '{}' ...\n\n",
@@ -43,8 +40,7 @@ int CLI::search()
 
     Spinner spin("Searching packages");
     spin.start();
-    int result = EasyProc::ProcessHandler::runExternalProcess(
-        {"conan", "search", search_pattern});
+    int result = EasyProc::ProcessHandler::runExternalProcess({"conan", "search", search_pattern});
     spin.stop();
 
     if (result != 0)
@@ -100,7 +96,6 @@ int CLI::search()
     return 0;
 }
 
-
 int CLI::info()
 {
     const auto& positionals = _commands->getPositionals();
@@ -117,12 +112,11 @@ int CLI::info()
     // If no version specified, try to discover the latest version
     if (package.find('/') == std::string::npos)
     {
-        if (EasyProc::ProcessHandler::runExternalProcess(
-                {"conan", "search", package + "/*"}) == 0)
+        if (EasyProc::ProcessHandler::runExternalProcess({"conan", "search", package + "/*"}) == 0)
         {
-            std::string log = EasyProc::ProcessHandler::getLog();
-            std::regex  version_regex(package + R"(/([^\s]+))");
-            std::string last_version;
+            std::string          log = EasyProc::ProcessHandler::getLog();
+            std::regex           version_regex(package + R"(/([^\s]+))");
+            std::string          last_version;
             std::sregex_iterator it(log.begin(), log.end(), version_regex);
             std::sregex_iterator end;
             while (it != end)
@@ -176,8 +170,8 @@ int CLI::info()
             {
                 std::string key   = trimmed.substr(0, colon_pos);
                 std::string value = trimmed.substr(colon_pos);
-                fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::light_steel_blue),
-                           "  {}", key);
+                fmt::print(
+                    fmt::emphasis::bold | fmt::fg(fmt::color::light_steel_blue), "  {}", key);
                 fmt::println("{}", value);
             }
             else if (trimmed.find('/') != std::string::npos)
@@ -203,7 +197,6 @@ int CLI::info()
     return 0;
 }
 
-
 int CLI::depTree()
 {
     namespace fs = std::filesystem;
@@ -224,7 +217,6 @@ int CLI::depTree()
     fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green),
                "\n🌳 Dependency Tree\n\n");
 
-   
     fmt::print(fmt::emphasis::bold, "Direct dependencies (from conanfile.py):\n");
     {
         std::ifstream conanfile("conanfile.py");
@@ -244,8 +236,8 @@ int CLI::depTree()
                 }
                 else if (std::regex_search(line, match, test_req_regex))
                 {
-                    fmt::print(fmt::fg(fmt::color::light_blue), "  ├── {} (test)\n",
-                               match[1].str());
+                    fmt::print(
+                        fmt::fg(fmt::color::light_blue), "  ├── {} (test)\n", match[1].str());
                     found = true;
                 }
             }
@@ -254,7 +246,6 @@ int CLI::depTree()
         }
     }
 
-  
     fmt::print(fmt::emphasis::bold, "\nFull dependency graph:\n");
 
     Spinner spin("Resolving dependency graph");

@@ -3,8 +3,6 @@
 // Refactored to share a common template engine.
 //
 
-#include "commands.h"
-
 #include <downloader.h>
 #include <easyproc.h>
 #include <fmt/color.h>
@@ -20,6 +18,7 @@
 #include <ranges>
 #include <string>
 
+#include "commands.h"
 #include "logger.h"
 
 namespace Leaf
@@ -27,7 +26,6 @@ namespace Leaf
 
 namespace
 {
-
 
 int ensureTemplateExists(std::filesystem::path& out_path)
 {
@@ -56,7 +54,7 @@ int ensureTemplateExists(std::filesystem::path& out_path)
 void expandTemplate(const std::filesystem::path&              template_dir,
                     const std::filesystem::path&              dest_dir,
                     const std::map<std::string, std::string>& replacements,
-                    const std::string&                        path_filter  = "",
+                    const std::string&                        path_filter   = "",
                     bool                                      skip_existing = false)
 {
     namespace fs = std::filesystem;
@@ -114,7 +112,6 @@ void expandTemplate(const std::filesystem::path&              template_dir,
 
 } // namespace
 
-
 int CLI::create()
 {
     namespace fs = std::filesystem;
@@ -157,7 +154,6 @@ int CLI::create()
     Leaf::Logger::success(fmt::format("Project '{}' created successfully!", project_name));
     return 0;
 }
-
 
 int CLI::init()
 {
@@ -231,7 +227,6 @@ int CLI::init()
     Leaf::Logger::success(fmt::format("Project '{}' initialized.", project_name));
     return 0;
 }
-
 
 int CLI::addApp()
 {

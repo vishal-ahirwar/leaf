@@ -1,6 +1,7 @@
 #pragma once
 
-namespace server {
+namespace server
+{
 
 int run(int argc, char** argv);
 

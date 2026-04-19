@@ -3,8 +3,6 @@
 // tests, docs, updater
 //
 
-#include "commands.h"
-
 #include <easyproc.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
@@ -21,11 +19,11 @@
 #include <string>
 #include <vector>
 
+#include "commands.h"
 #include "logger.h"
 
 namespace Leaf
 {
-
 
 int CLI::doctor()
 {
@@ -56,7 +54,6 @@ int CLI::doctor()
                allToolsInstalled ? "True" : "False");
     return allToolsInstalled ? 0 : 1;
 }
-
 
 int CLI::format()
 {
@@ -103,14 +100,12 @@ int CLI::format()
     return 0;
 }
 
-
 int CLI::runTests()
 {
     EasyProc::ProcessHandler::runExternalProcess(
         {"ctest", "--test-dir", ".build/debug/tests"}, false, true);
     return 0;
 }
-
 
 int CLI::generateDocs()
 {
@@ -136,11 +131,9 @@ int CLI::generateDocs()
         return 1;
     }
     spin.stop();
-    Leaf::Logger::success(
-        "Documentation generated (check Doxyfile for output path).");
+    Leaf::Logger::success("Documentation generated (check Doxyfile for output path).");
     return 0;
 }
-
 
 int CLI::startLeafUpdater()
 {
@@ -148,7 +141,6 @@ int CLI::startLeafUpdater()
     EasyProc::ProcessHandler::runExternalProcess({"updater"}, false, true);
     return 0;
 }
-
 
 int CLI::setupToolChain()
 {
@@ -234,10 +226,9 @@ int CLI::setupToolChain()
     if (!exists({"ninja", "--version"}))
     {
         fmt::println("Installing ninja...");
-        const bool ninja_ok =
-            tryCommands({{"winget", "install", "--id", "Ninja-build.Ninja", "-e"},
-                         {"choco", "install", "ninja", "-y"},
-                         {"scoop", "install", "ninja"}});
+        const bool ninja_ok = tryCommands({{"winget", "install", "--id", "Ninja-build.Ninja", "-e"},
+                                           {"choco", "install", "ninja", "-y"},
+                                           {"scoop", "install", "ninja"}});
         setup_ok &= ninja_ok;
         if (!ninja_ok)
             Leaf::Logger::error("Failed to install ninja.");
@@ -402,7 +393,6 @@ int CLI::setupToolChain()
     return setup_ok ? 0 : 1;
 }
 
-
 int CLI::generateProfile()
 {
     std::string cpp_std    = "20";
@@ -414,11 +404,11 @@ int CLI::generateProfile()
     {
         std::string line;
         std::regex  std_regex(R"(set\s*\(\s*CMAKE_CXX_STANDARD\s+["']?(\d+)["']?\s*\))",
-                             std::regex_constants::icase);
-        std::regex  comp_regex(R"(set\s*\(\s*CMAKE_CXX_COMPILER\s+["']?([^\s\)]+)["']?\s*\))",
                               std::regex_constants::icase);
-        std::regex  build_regex(R"(set\s*\(\s*CMAKE_BUILD_TYPE\s+["']?([^\s\)]+)["']?\s*\))",
+        std::regex  comp_regex(R"(set\s*\(\s*CMAKE_CXX_COMPILER\s+["']?([^\s\)]+)["']?\s*\))",
                                std::regex_constants::icase);
+        std::regex  build_regex(R"(set\s*\(\s*CMAKE_BUILD_TYPE\s+["']?([^\s\)]+)["']?\s*\))",
+                                std::regex_constants::icase);
 
         while (std::getline(cmake, line))
         {
@@ -535,7 +525,6 @@ int CLI::generateProfile()
         lines.push_back("tools.system.package_manager:sudo=True");
     }
 #endif
-
 
     std::filesystem::create_directories("profiles");
     std::ofstream out(os_profile);
