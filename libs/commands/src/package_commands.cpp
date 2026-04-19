@@ -251,12 +251,13 @@ void addTargetLinkToFile(const std::string&              cmake_path,
     while (std::getline(in, line))
         lines.push_back(line);
     in.close();
-
+    bool append_target_link_lines = true;
     for (auto& l : lines)
     {
         if (l.find("target_link_libraries") != std::string::npos &&
             l.find(target_name) != std::string::npos)
         {
+            append_target_link_lines = false;
             for (const auto& cmake_target : cmake_targets)
             {
                 if (l.find(cmake_target) != std::string::npos)
@@ -270,7 +271,10 @@ void addTargetLinkToFile(const std::string&              cmake_path,
             break;
         }
     }
-
+    if (append_target_link_lines)
+    {
+        lines.push_back(fmt::format("target_link_libraries({} PRIVATE {})",target_name,*cmake_targets.begin()));
+    }
     std::ofstream out(cmake_path);
     for (const auto& l : lines)
         out << l << "\n";

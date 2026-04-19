@@ -35,7 +35,7 @@ int CLI::search()
     const std::string search_pattern = query.find('*') != std::string::npos ? query : query + "*";
 
     fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green),
-               "\n🔍 Searching for '{}' ...\n\n",
+               "\nSearching for '{}' ...\n\n",
                query);
 
     Spinner spin("Searching packages");
@@ -65,7 +65,7 @@ int CLI::search()
         return 0;
     }
 
-    fmt::print(fmt::emphasis::bold, "📦 Results:\n\n");
+    fmt::print(fmt::emphasis::bold, "Results:\n\n");
     std::istringstream stream(log);
     std::string        line;
     int                count = 0;
@@ -142,7 +142,7 @@ int CLI::info()
     }
 
     fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green),
-               "\n📋 Package Information: {}\n\n",
+               "\nPackage Information: {}\n\n",
                package);
 
     // Use `conan graph info --requires=<ref>` — the correct Conan 2 approach
@@ -215,7 +215,7 @@ int CLI::depTree()
     }
 
     fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green),
-               "\n🌳 Dependency Tree\n\n");
+               "\nDependency Tree\n\n");
 
     fmt::print(fmt::emphasis::bold, "Direct dependencies (from conanfile.py):\n");
     {
