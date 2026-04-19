@@ -3,7 +3,7 @@ from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
     
 class LeafConan(ConanFile):
     name = "leaf" # The package name should be the library's name
-    version = "0.2.4"
+    version = "0.2.5"
     settings = "os", "compiler", "build_type", "arch"
     options = {
         "shared": [True, False],
