@@ -41,22 +41,35 @@ int CLI::server()
 
     if (positionals.empty())
     {
+        fmt::print("\n🍃 Leaf Server Module\n");
         fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green),
-                   "\n🍃 Leaf Package Server\n\n");
+                   "Manage a lightweight Leaf package server for hosting Conan packages\n\n");
         fmt::println("Usage: leaf server <subcommand>\n");
-        fmt::println("Subcommands:");
-        fmt::println("  init              Initialize the server data directory");
-        fmt::println("  start [port]      Start the package server (default: 9300)");
-        fmt::println("  push  <pattern>   Upload packages to a Leaf server remote");
-        fmt::println("  add   <name> <url> Add a remote Leaf server to Conan config");
+        
+        fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::medium_spring_green),
+                   "Available Commands\n");
+                   
+        std::vector<std::pair<std::string, std::string>> subcommands = {
+            {"init", "Initialize the server data directory in the user config home."},
+            {"start [port]", "Start the package server daemon (default port: 9300)."},
+            {"push <pattern>", "Upload compiled packages to a remote Leaf server."},
+            {"add <name> <url>", "Add a remote Leaf server to your Conan configuration."}
+        };
+
+        for (const auto& cmd : subcommands)
+        {
+            fmt::print("{:<18} - ", cmd.first);
+            fmt::print(fmt::emphasis::faint | fmt::fg(fmt::color::floral_white),
+                       "{}\n", cmd.second);
+        }
+        
         fmt::println("");
-        fmt::println("Quick start:");
-        fmt::println("  leaf server init");
-        fmt::println("  leaf server start");
-        fmt::println("  # On another machine:");
-        fmt::println("  leaf server add my-server http://<server-ip>:9300");
-        fmt::println("  leaf addpkg mylib");
-        fmt::println("");
+        fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::dodger_blue), "Quick Start:\n");
+        fmt::print(fmt::emphasis::faint | fmt::fg(fmt::color::floral_white),
+                   "  leaf server init\n"
+                   "  leaf server start\n"
+                   "  leaf server add my-server http://<ip>:9300\n"
+                   "  leaf addpkg mylib\n\n");
         return 0;
     }
 

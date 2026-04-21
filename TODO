@@ -1,11 +1,14 @@
-- Env setup before installing 3rd-party libs through conan2 everytime user run leaf install
-- Fix how commands are being managed !
-- Fix value being returned by methods and them correctly
-- doctor
-- auto cmake generation
-- auto conan profile host generation
-- auto artifact setup for private conan packages
-- add cmake/platforms *.cmake files for well known platforms and frameworks like qt, web,android cmake/qtconfig.cmake,
-  cmake/platforms/webconfig.cmake, cmake/platforms/androidconfig.cmake fetch these from leaf's gihub repo only if needed
+# Leaf Todo List 
+This list tracks remaining codebase bugs and missing feature implementations identified during the product audit.
 
-- ....
+## Critical Bugs Left
+- [ ] **Fragile Project File Parsers**: `addpkg` and `remove` commands rely on fragile regex string-matching to modify `CMakeLists.txt` and `conanfile.py`. This is extremely prone to wiping/corrupting unrelated configurations. Needs a safer parsing mechanism (like AST/DOM navigation or robust anchors). 
+- [ ] **macOS Toolchain Setup**: The block for apple device setups inside `toolchain_commands.cpp` is severely broken and currently marked by `WTF is going on here`.
+- [ ] **Search Output Noise**: `leaf search` command formats raw Conan internal warnings (e.g. "WARN: No remote") as bullets directly alongside actual package search results, severely polluting the UI.
+
+## Missing Features 
+- [ ] **Conan Profile Logic**: `CLI::generateProfile()` is missing the ability to inject dynamic `[conf]` variables, which are natively required for high-fidelity cross-platform builds in Conan 2.0.
+- [x] **Command Help Uniformity**: The `leaf server` manual help block is hard-coded and completely ignores the dynamic, two-column style layout formulated in `CLI::help()`.
+- [ ] **Init Conflict Resloution**: Project Scaffolding execution (`leaf init`) currently expands starter templates blindly and causes silent failure or corruption without an interactive "Merge/Overwrite?" prompt if the folder contents overlap.
+- [ ] **Private Asset / Remote Artifacts Setup**: Missing automated integration logic to natively sync the local `leaf-server` cache directly into the `conan remote` configurations. 
+- [ ] **Extended Framework Build Chains**: Create and fetch `cmake/platforms/*.cmake` configuration files seamlessly for Android, WebAssembly, and Qt environments natively.
