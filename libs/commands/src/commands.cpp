@@ -21,6 +21,11 @@ bool CLI::isReleaseMode() const
     return _commands->hasOption("release");
 }
 
+bool CLI::isVerboseMode() const
+{
+    return _commands->hasOption("verbose");
+}
+
 std::optional<std::string> CLI::getAppOption() const
 {
     return _commands->getOptionValue("app");

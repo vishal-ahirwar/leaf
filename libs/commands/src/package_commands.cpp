@@ -5,7 +5,7 @@
 #include <easyproc.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
-#include <spinner.h>
+#include <progress.h>
 #include <utils.h>
 
 #include <algorithm>
@@ -284,8 +284,8 @@ void addTargetLinkToFile(const std::string&              cmake_path,
 
 int CLI::install()
 {
-    Spinner spin("Installing dependencies");
-    spin.start();
+    progress::Spinner spin("Installing dependencies");
+    if (!isVerboseMode()) spin.start();
 
     if (!std::filesystem::exists(Utils::getOSProfilePath()))
     {
@@ -314,11 +314,11 @@ int CLI::install()
     {
         conanInstallArgs.emplace_back("build_type=Debug");
     }
-    if (0 != EasyProc::ProcessHandler::runExternalProcess(conanInstallArgs))
+    if (0 != EasyProc::ProcessHandler::runExternalProcess(conanInstallArgs, !isVerboseMode(), isVerboseMode()))
     {
         fmt::println("{}", EasyProc::ProcessHandler::getLog());
     }
-    spin.stop();
+    if (!isVerboseMode()) spin.stop();
     return 0;
 }
 
@@ -605,16 +605,16 @@ int CLI::removePackage()
 
 int CLI::publish()
 {
-    Spinner spin("Creating Package");
-    spin.start();
+    progress::Spinner spin("Creating Package");
+    if (!isVerboseMode()) spin.start();
     if (0 != EasyProc::ProcessHandler::runExternalProcess(
                  {"conan", "create", ".", "-b", "missing", "-pr", Utils::getOSProfilePath()},
-                 false,
-                 true))
+                 !isVerboseMode(),
+                 isVerboseMode()))
     {
         fmt::println("{}", EasyProc::ProcessHandler::getLog());
     }
-    spin.stop();
+    if (!isVerboseMode()) spin.stop();
     return 0;
 }
 
@@ -646,7 +646,7 @@ int CLI::upload()
     if (pattern.empty())
         pattern = fs::current_path().filename().string();
     std::vector<std::string> conanArgs = {"conan", "upload", pattern, "-r", remote, "-c"};
-    if (EasyProc::ProcessHandler::runExternalProcess(conanArgs, false, true) != 0)
+    if (EasyProc::ProcessHandler::runExternalProcess(conanArgs, !isVerboseMode(), isVerboseMode()) != 0)
     {
         Leaf::Logger::error("Upload failed.");
         fmt::println("{}", EasyProc::ProcessHandler::getLog());

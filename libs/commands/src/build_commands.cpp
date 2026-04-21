@@ -5,7 +5,7 @@
 #include <easyproc.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
-#include <spinner.h>
+#include <progress.h>
 #include <utils.h>
 
 #include <filesystem>
@@ -46,17 +46,17 @@ int CLI::build()
         }
     }
 
-    Spinner spin("Building project");
-    spin.start();
+    progress::Spinner spin("Building project");
+    if (!isVerboseMode()) spin.start();
     if (fs::exists("CMakePresets.json"))
     {
         if (!fs::exists(build_dir))
         {
-            spin.setDisplayMessage("Generating cmake files");
+            if (!isVerboseMode()) spin.setDisplayMessage("Generating cmake files");
             if (EasyProc::ProcessHandler::runExternalProcess(
-                    {"cmake", "--preset", mode, "--fresh"}) != 0)
+                    {"cmake", "--preset", mode, "--fresh"}, !isVerboseMode(), isVerboseMode()) != 0)
             {
-                spin.stop();
+                if (!isVerboseMode()) spin.stop();
                 fmt::println("{}", EasyProc::ProcessHandler::getLog());
                 return 1;
             }
@@ -66,7 +66,7 @@ int CLI::build()
     {
         if (!fs::exists(build_dir))
         {
-            spin.setDisplayMessage("Generating cmake files");
+            if (!isVerboseMode()) spin.setDisplayMessage("Generating cmake files");
             if (EasyProc::ProcessHandler::runExternalProcess(
                     {"cmake",
                      "-S",
@@ -75,30 +75,30 @@ int CLI::build()
                      build_dir,
                      "-G",
                      "Ninja",
-                     fmt::format("-DCMAKE_BUILD_TYPE={}", release_mode ? "Release" : "Debug")}) !=
+                     fmt::format("-DCMAKE_BUILD_TYPE={}", release_mode ? "Release" : "Debug")}, !isVerboseMode(), isVerboseMode()) !=
                 0)
             {
-                spin.stop();
+                if (!isVerboseMode()) spin.stop();
                 fmt::println("{}", EasyProc::ProcessHandler::getLog());
                 return 1;
             }
         }
     }
 
-    spin.setDisplayMessage("Compiling");
+    if (!isVerboseMode()) spin.setDisplayMessage("Compiling");
     std::vector<std::string> build_args{"cmake", "--build", build_dir};
     if (!app_target.empty())
     {
         build_args.push_back("--target");
         build_args.push_back(app_target);
     }
-    if (EasyProc::ProcessHandler::runExternalProcess(build_args) != 0)
+    if (EasyProc::ProcessHandler::runExternalProcess(build_args, !isVerboseMode(), isVerboseMode()) != 0)
     {
-        spin.stop();
+        if (!isVerboseMode()) spin.stop();
         fmt::println("{}", EasyProc::ProcessHandler::getLog());
         return 1;
     }
-    spin.stop();
+    if (!isVerboseMode()) spin.stop();
     return 0;
 }
 
@@ -147,7 +147,7 @@ int CLI::run()
         return 1;
     }
 
-    if (EasyProc::ProcessHandler::runExternalProcess({app_path.string()}, false, true) != 0)
+    if (EasyProc::ProcessHandler::runExternalProcess({app_path.string()}, !isVerboseMode(), isVerboseMode()) != 0)
     {
         fmt::println("{}", EasyProc::ProcessHandler::getLog());
         return 1;
@@ -158,14 +158,14 @@ int CLI::run()
 int CLI::clean()
 {
     namespace fs = std::filesystem;
-    Spinner spin("Running clean build");
-    spin.start();
+    progress::Spinner spin("Running clean build");
+    if (!isVerboseMode()) spin.start();
     if (isReleaseMode())
     {
         if (!fs::exists(".install/Release"))
             install();
         if (0 != EasyProc::ProcessHandler::runExternalProcess(
-                     {"cmake", "--preset", "release", "--fresh"}))
+                     {"cmake", "--preset", "release", "--fresh"}, !isVerboseMode(), isVerboseMode()))
         {
             fmt::println("{}", EasyProc::ProcessHandler::getLog());
         }
@@ -175,12 +175,12 @@ int CLI::clean()
         if (!fs::exists(".install/Debug"))
             install();
         if (0 !=
-            EasyProc::ProcessHandler::runExternalProcess({"cmake", "--preset", "debug", "--fresh"}))
+            EasyProc::ProcessHandler::runExternalProcess({"cmake", "--preset", "debug", "--fresh"}, !isVerboseMode(), isVerboseMode()))
         {
             fmt::println("{}", EasyProc::ProcessHandler::getLog());
         }
     }
-    spin.stop();
+    if (!isVerboseMode()) spin.stop();
     return 0;
 }
 

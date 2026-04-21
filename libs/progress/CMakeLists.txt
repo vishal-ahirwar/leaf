@@ -1,0 +1,5 @@
+find_package(fmt REQUIRED)
+add_library(progress src/progress.cpp)
+target_include_directories(progress PUBLIC include)
+target_link_libraries(progress PUBLIC fmt::fmt)
+set_target_properties(progress PROPERTIES CXX_STANDARD 20)

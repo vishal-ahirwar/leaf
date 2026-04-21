@@ -13,7 +13,7 @@ namespace Leaf
 int commandregistry::exec()
 {
     cargs::Parser parser;
-    parser.addAlias('r', "release").addAlias('a', "app").addAlias('t', "target");
+    parser.addAlias('r', "release").addAlias('a', "app").addAlias('t', "target").addAlias('v', "verbose");
     const auto parsed = parser.parse(_args);
 
     _parsedCommand = parsed.command;

@@ -6,8 +6,8 @@
 #include <easyproc.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
+#include <progress.h>
 #include <pystring.h>
-#include <spinner.h>
 #include <utils.h>
 
 #include <algorithm>
@@ -27,15 +27,15 @@ namespace Leaf
 
 int CLI::doctor()
 {
-    Spinner spin("Checking required Toolchain");
-    spin.start();
+    progress::Spinner spin("Checking required Toolchain");
+    if (!isVerboseMode()) spin.start();
 
     std::vector<std::string> tools{"clang", "cmake", "ninja", "conan","ccache"};
     bool                     allToolsInstalled = true;
 
     for (const auto& tool : tools)
     {
-        bool installed = EasyProc::ProcessHandler::runExternalProcess({tool, "--version"}) == 0;
+        bool installed = EasyProc::ProcessHandler::runExternalProcess({tool, "--version"}, !isVerboseMode(), isVerboseMode()) == 0;
         if (!installed)
         {
             Leaf::Logger::error(fmt::format("'{}' is not installed or not in PATH.", tool));
@@ -47,7 +47,7 @@ int CLI::doctor()
         allToolsInstalled = allToolsInstalled && installed;
     }
 
-    spin.stop();
+    if (!isVerboseMode()) spin.stop();
     fmt::print(allToolsInstalled ? fmt::emphasis::bold | fmt::fg(fmt::color::medium_sea_green)
                                  : fmt::emphasis::underline | fmt::fg(fmt::color::crimson),
                "\nAll tools installed: {}\n",
@@ -57,8 +57,8 @@ int CLI::doctor()
 
 int CLI::format()
 {
-    Spinner spin("Formatting code");
-    spin.start();
+    progress::Spinner spin("Formatting code");
+    if (!isVerboseMode()) spin.start();
 
     std::vector<std::string> dirs_to_format = {"apps", "libs", "tests", "src", "include"};
     std::vector<std::string> files_to_format;
@@ -84,7 +84,7 @@ int CLI::format()
 
     if (files_to_format.empty())
     {
-        spin.stop();
+        if (!isVerboseMode()) spin.stop();
         fmt::println("No source files found to format.");
         return 0;
     }
@@ -95,7 +95,7 @@ int CLI::format()
             {"clang-format", "-i", "-style=file", file}, false, false);
     }
 
-    spin.stop();
+    if (!isVerboseMode()) spin.stop();
     Leaf::Logger::success(fmt::format("Formatted {} files.", files_to_format.size()));
     return 0;
 }
@@ -103,7 +103,7 @@ int CLI::format()
 int CLI::runTests()
 {
     EasyProc::ProcessHandler::runExternalProcess(
-        {"ctest", "--test-dir", ".build/debug/tests"}, false, true);
+        {"ctest", "--test-dir", ".build/debug/tests"}, !isVerboseMode(), true); // tests always show log
     return 0;
 }
 
@@ -121,16 +121,16 @@ int CLI::generateDocs()
         return 0;
     }
 
-    Spinner spin("Generating documentation");
-    spin.start();
-    if (EasyProc::ProcessHandler::runExternalProcess({"doxygen", "Doxyfile"}) != 0)
+    progress::Spinner spin("Generating documentation");
+    if (!isVerboseMode()) spin.start();
+    if (EasyProc::ProcessHandler::runExternalProcess({"doxygen", "Doxyfile"}, !isVerboseMode(), isVerboseMode()) != 0)
     {
-        spin.stop();
+        if (!isVerboseMode()) spin.stop();
         Leaf::Logger::error("Failed to generate documentation.");
         fmt::println("{}", EasyProc::ProcessHandler::getLog());
         return 1;
     }
-    spin.stop();
+    if (!isVerboseMode()) spin.stop();
     Leaf::Logger::success("Documentation generated (check Doxyfile for output path).");
     return 0;
 }

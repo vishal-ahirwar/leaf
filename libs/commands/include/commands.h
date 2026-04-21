@@ -30,6 +30,7 @@ class CLI
 
   protected:
     bool                       isReleaseMode() const;
+    bool                       isVerboseMode() const;
     std::optional<std::string> getAppOption() const;
     std::optional<std::string> getTargetOption() const;
     std::string                detectDefaultAppName() const;

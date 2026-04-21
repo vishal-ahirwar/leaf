@@ -3,7 +3,7 @@
 #include <easyproc.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
-#include <spinner.h>
+#include <progress.h>
 #include <utils.h>
 
 #include <filesystem>
@@ -38,10 +38,11 @@ int CLI::search()
                "\nSearching for '{}' ...\n\n",
                query);
 
-    Spinner spin("Searching packages");
-    spin.start();
-    int result = EasyProc::ProcessHandler::runExternalProcess({"conan", "search", search_pattern});
-    spin.stop();
+    progress::Spinner spin("Searching packages");
+    if (!isVerboseMode()) spin.start();
+    int result = EasyProc::ProcessHandler::runExternalProcess({"conan", "search", search_pattern}, !isVerboseMode(), isVerboseMode());
+    if (!isVerboseMode()) spin.stop();
+    if (isVerboseMode() && result == 0) return 0;
 
     if (result != 0)
     {
@@ -146,11 +147,12 @@ int CLI::info()
                package);
 
     // Use `conan graph info --requires=<ref>` — the correct Conan 2 approach
-    Spinner spin("Fetching package info");
-    spin.start();
+    progress::Spinner spin("Fetching package info");
+    if (!isVerboseMode()) spin.start();
     int result = EasyProc::ProcessHandler::runExternalProcess(
-        {"conan", "graph", "info", fmt::format("--requires={}", package)});
-    spin.stop();
+        {"conan", "graph", "info", fmt::format("--requires={}", package)}, !isVerboseMode(), isVerboseMode());
+    if (!isVerboseMode()) spin.stop();
+    if (isVerboseMode() && result == 0) return 0;
 
     if (result == 0)
     {
@@ -248,11 +250,12 @@ int CLI::depTree()
 
     fmt::print(fmt::emphasis::bold, "\nFull dependency graph:\n");
 
-    Spinner spin("Resolving dependency graph");
-    spin.start();
+    progress::Spinner spin("Resolving dependency graph");
+    if (!isVerboseMode()) spin.start();
     int result = EasyProc::ProcessHandler::runExternalProcess(
-        {"conan", "graph", "info", ".", "-pr", Utils::getOSProfilePath()});
-    spin.stop();
+        {"conan", "graph", "info", ".", "-pr", Utils::getOSProfilePath()}, !isVerboseMode(), isVerboseMode());
+    if (!isVerboseMode()) spin.stop();
+    if (isVerboseMode() && result == 0) return 0;
 
     if (result == 0)
     {

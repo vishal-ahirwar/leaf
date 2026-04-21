@@ -2,7 +2,7 @@ find_package(fmt)
 add_library(logger src/logger.cpp)
 
 target_include_directories(logger PUBLIC include)
-target_link_libraries(logger PRIVATE fmt::fmt)
+target_link_libraries(logger PRIVATE fmt::fmt progress)
 
 install(TARGETS logger)
 install(DIRECTORY include/ DESTINATION include/logger)

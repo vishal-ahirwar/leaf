@@ -25,36 +25,40 @@ static int fail(std::error_code ec)
     return ec.value();
 }
 
+struct CustomSink {
+    std::string& out;
+    bool showLog;
+    std::error_code operator()(reproc::stream stream, const uint8_t *buffer, size_t size) {
+        if (showLog) {
+            if (stream == reproc::stream::err) {
+                std::cerr.write(reinterpret_cast<const char*>(buffer), size);
+                std::cerr.flush();
+            } else {
+                std::cout.write(reinterpret_cast<const char*>(buffer), size);
+                std::cout.flush();
+            }
+        }
+        out.append(reinterpret_cast<const char*>(buffer), size);
+        return {};
+    }
+};
+
 int ProcessHandler::runExternalProcess(const std::vector<std::string>& args,
                                        bool                            captureStdOutStdErr,
                                        bool                            showLog)
 {
-
-    if (showLog)
-    {
-        std::string cmd_line;
-        for (const auto& arg : args)
-        {
-            if (arg.find(' ') != std::string::npos)
-            {
-                cmd_line += fmt::format("\"{}\" ", arg);
-            }
-            else
-            {
-                cmd_line += arg + " ";
-            }
-        }
-        return std::system(cmd_line.c_str());
-    }
     reproc::process process;
     reproc::options options;
-    options.redirect.parent   = showLog;
+    
+    options.redirect.parent   = false;
     options.redirect.err.type = reproc::redirect::pipe;
-    options.redirect.in.type  = reproc::redirect::pipe;
-    auto ec                   = process.start(args, options);
+    options.redirect.out.type = reproc::redirect::pipe;
+    options.redirect.in.type  = showLog ? reproc::redirect::parent : reproc::redirect::pipe;
+    
+    auto ec = process.start(args, options);
     if (ec == std::errc::no_such_file_or_directory)
     {
-        std::cerr << "Program not found. Make sure it's available from the PATH.";
+        std::cerr << "Program not found. Make sure it's available from the PATH.\n";
         return ec.value();
     }
     else if (ec)
@@ -62,16 +66,25 @@ int ProcessHandler::runExternalProcess(const std::vector<std::string>& args,
         return fail(ec);
     }
 
-    // Capture into a local string first, then move under lock — minimal lock time
+    // Capture into a local string first, then move under lock
     std::string captured_output;
     if (captureStdOutStdErr)
     {
-        reproc::sink::string sink(captured_output);
+        CustomSink sink{captured_output, showLog};
         ec = reproc::drain(process, sink, sink);
         if (ec)
         {
             return fail(ec);
         }
+    }
+    else if (showLog)
+    {
+        // If capture is false but showLog is true, we still want to stream it to console.
+        CustomSink sink{captured_output, showLog};
+        ec = reproc::drain(process, sink, sink);
+        if (ec)
+            return fail(ec);
+        // We will just not append to _log lock. 
     }
 
     int status           = 0;
@@ -93,7 +106,7 @@ int ProcessHandler::runExternalProcess(const std::vector<std::string>& args,
 std::string ProcessHandler::getLog()
 {
     std::lock_guard<std::mutex> guard(s_log_mutex);
-    return _log; // Return by value for thread safety
+    return _log; 
 }
 
 } // namespace EasyProc
