@@ -1,3 +1,8 @@
+# ⚠️ Project Moved to Codeberg
+New Home: https://codeberg.org/vishal-ahirwar/leaf
+
+Note: This GitHub repository is now a read-only mirror. Issues and Pull Requests should be opened on Codeberg.
+
 # 🍃 Leaf
 
 A modern, fast, and intuitive package manager for C++ - inspired by Cargo for Rust.
